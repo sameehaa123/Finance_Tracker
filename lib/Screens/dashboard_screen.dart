@@ -24,6 +24,7 @@ class _DashboardState extends State<Dashboard> {
 
 
   Future<void> fetchExpenses() async {
+
     final snapshot = await FirebaseFirestore.instance
         .collection('expenses')
         .where('userId', isEqualTo: user.uid)
