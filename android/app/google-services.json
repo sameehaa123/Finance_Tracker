@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "83453219439",
+    "project_id": "financetracker-8e493",
+    "storage_bucket": "financetracker-8e493.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:83453219439:android:2eb7cb925057e6a1f0b39a",
+        "android_client_info": {
+          "package_name": "com.sameeha.ai_poweredfinancetracker"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBHC1TOsvZN8r7RYpKLGNTQwHHA7cKNKYk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
