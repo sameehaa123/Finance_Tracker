@@ -5,10 +5,19 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'add_expense.dart';
 import 'login_screen.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class Dashboard extends StatefulWidget {
   @override
   _DashboardState createState() => _DashboardState();
+}
+
+Future<void> _logout(BuildContext context) async {
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.clear(); // remove all saved data
+  await FirebaseAuth.instance.signOut();
+
+  Navigator.of(context).pop();
 }
 
 class _DashboardState extends State<Dashboard> {
@@ -47,11 +56,6 @@ class _DashboardState extends State<Dashboard> {
     });
   }
 
-  Future<void> _logout() async {
-    await FirebaseAuth.instance.signOut();
-    Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => LoginScreen()));
-  }
-
   @override
   Widget build(BuildContext context) {
     final colors = [Colors.blue, Colors.green, Colors.orange, Colors.red, Colors.purple];
@@ -60,7 +64,7 @@ class _DashboardState extends State<Dashboard> {
       appBar: AppBar(
         title: Text('Dashboard'),
         actions: [
-          IconButton(onPressed: _logout, icon: Icon(Icons.logout))
+          IconButton(onPressed: ()async{await _logout(context); }, icon: Icon(Icons.logout))
         ],
       ),
       body: Padding(

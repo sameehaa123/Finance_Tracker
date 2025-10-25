@@ -2,9 +2,10 @@ import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:open_file/open_file.dart';
 
 class AddExpenseScreen extends StatefulWidget {
   final String? expenseId; // null = add, non-null = edit
@@ -24,7 +25,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
 
   String? _selectedCategory;
   File? _imageFile;
-  String? _existingImageUrl;
+  String? _existingImagePath;
   bool _isLoading = false;
 
   final List<String> _categories = [
@@ -39,42 +40,33 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
   @override
   void initState() {
     super.initState();
-    // If editing, prefill data
     if (widget.expenseData != null) {
       _titleController.text = widget.expenseData!['title'];
       _amountController.text = widget.expenseData!['amount'].toString();
       _dateController.text = widget.expenseData!['date'];
       _selectedCategory = widget.expenseData!['category'];
-      _existingImageUrl = widget.expenseData!['imageUrl'];
+      _existingImagePath = widget.expenseData!['imagePath'];
     }
   }
 
   Future<void> _pickImage() async {
-    final pickedFile =
-    await ImagePicker().pickImage(source: ImageSource.gallery);
+    final pickedFile = await ImagePicker().pickImage(source: ImageSource.gallery);
     if (pickedFile != null) {
+      final appDir = await getApplicationDocumentsDirectory();
+      final fileName = DateTime.now().millisecondsSinceEpoch.toString() + '.jpg';
+      final savedImage = await File(pickedFile.path).copy('${appDir.path}/$fileName');
       setState(() {
-        _imageFile = File(pickedFile.path);
+        _imageFile = savedImage;
       });
     }
   }
 
-  Future<String?> _uploadImage(File image) async {
-    try {
-      final fileName = DateTime.now().millisecondsSinceEpoch.toString();
-      final ref =
-      FirebaseStorage.instance.ref().child('expense_attachments/$fileName');
-      await ref.putFile(image);
-      return await ref.getDownloadURL();
-    } catch (e) {
-      print('Error uploading image: $e');
-      return null;
-    }
+  Future<void> _openImage(File imageFile) async {
+    await OpenFile.open(imageFile.path);
   }
 
   Future<void> _saveExpense() async {
     final user = FirebaseAuth.instance.currentUser;
-
 
     if (_titleController.text.isEmpty ||
         _amountController.text.isEmpty ||
@@ -88,9 +80,9 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
 
     setState(() => _isLoading = true);
 
-    String? imageUrl = _existingImageUrl;
+    String? imagePath = _existingImagePath;
     if (_imageFile != null) {
-      imageUrl = await _uploadImage(_imageFile!);
+      imagePath = _imageFile!.path;
     }
 
     final data = {
@@ -98,15 +90,13 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
       'amount': double.parse(_amountController.text),
       'category': _selectedCategory,
       'date': _dateController.text,
-      'imageUrl': imageUrl ?? '',
+      'imagePath': imagePath ?? '',
       'updatedAt': Timestamp.now(),
-      'userId' : user?.uid
-
+      'userId': user?.uid,
     };
 
     try {
       if (widget.expenseId == null) {
-        // ADD
         await FirebaseFirestore.instance.collection('expenses').add({
           ...data,
           'createdAt': Timestamp.now(),
@@ -115,7 +105,6 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
           const SnackBar(content: Text('Expense added successfully')),
         );
       } else {
-        // EDIT
         await FirebaseFirestore.instance
             .collection('expenses')
             .doc(widget.expenseId)
@@ -125,7 +114,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
         );
       }
 
-      Navigator.pop(context); // go back after save
+      Navigator.pop(context);
     } catch (e) {
       print('Error saving expense: $e');
       ScaffoldMessenger.of(context).showSnackBar(
@@ -164,7 +153,6 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Title
             TextField(
               controller: _titleController,
               decoration: const InputDecoration(
@@ -173,8 +161,6 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
               ),
             ),
             const SizedBox(height: 15),
-
-            // Amount
             TextField(
               controller: _amountController,
               keyboardType: TextInputType.number,
@@ -184,8 +170,6 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
               ),
             ),
             const SizedBox(height: 15),
-
-            // Category Dropdown
             DropdownButtonFormField<String>(
               value: _selectedCategory,
               decoration: const InputDecoration(
@@ -203,8 +187,6 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
               }),
             ),
             const SizedBox(height: 15),
-
-            // Date Picker
             TextField(
               controller: _dateController,
               readOnly: true,
@@ -219,7 +201,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
             ),
             const SizedBox(height: 15),
 
-            // Image Picker
+            // Image picker and open image
             GestureDetector(
               onTap: _pickImage,
               child: Container(
@@ -230,11 +212,18 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: _imageFile != null
-                    ? Image.file(_imageFile!, fit: BoxFit.cover)
-                    : _existingImageUrl != null &&
-                    _existingImageUrl!.isNotEmpty
-                    ? Image.network(_existingImageUrl!,
-                    fit: BoxFit.cover)
+                    ? GestureDetector(
+                  onTap: () => _openImage(_imageFile!),
+                  child: Image.file(_imageFile!, fit: BoxFit.cover),
+                )
+                    : _existingImagePath != null &&
+                    _existingImagePath!.isNotEmpty
+                    ? GestureDetector(
+                  onTap: () =>
+                      _openImage(File(_existingImagePath!)),
+                  child: Image.file(File(_existingImagePath!),
+                      fit: BoxFit.cover),
+                )
                     : const Center(
                   child: Text(
                     'Tap to add attachment (optional)',
@@ -244,15 +233,13 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
               ),
             ),
             const SizedBox(height: 20),
-
-            // Save Button
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
                 onPressed: _saveExpense,
                 icon: const Icon(Icons.save),
-                label:
-                Text(isEditMode ? 'Update Expense' : 'Save Expense'),
+                label: Text(
+                    isEditMode ? 'Update Expense' : 'Save Expense'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.teal,
                   padding: const EdgeInsets.symmetric(vertical: 14),

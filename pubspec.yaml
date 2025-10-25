@@ -41,6 +41,9 @@ dependencies:
   image_picker: ^1.1.2
   fl_chart: ^0.68.0
   intl: any
+  path_provider: any
+  open_file: any
+  shared_preferences: any
 dev_dependencies:
   flutter_test:
     sdk: flutter
