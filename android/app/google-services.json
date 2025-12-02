@@ -23,6 +23,25 @@
           "other_platform_oauth_client": []
         }
       }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:83453219439:android:fc03b76fd7d8a277f0b39a",
+        "android_client_info": {
+          "package_name": "com.sameeha.aipoweredfinancetracker"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBHC1TOsvZN8r7RYpKLGNTQwHHA7cKNKYk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
     }
   ],
   "configuration_version": "1"

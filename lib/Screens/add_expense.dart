@@ -50,11 +50,14 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
   }
 
   Future<void> _pickImage() async {
-    final pickedFile = await ImagePicker().pickImage(source: ImageSource.gallery);
+    final pickedFile =
+    await ImagePicker().pickImage(source: ImageSource.gallery);
     if (pickedFile != null) {
       final appDir = await getApplicationDocumentsDirectory();
-      final fileName = DateTime.now().millisecondsSinceEpoch.toString() + '.jpg';
-      final savedImage = await File(pickedFile.path).copy('${appDir.path}/$fileName');
+      final fileName =
+          DateTime.now().millisecondsSinceEpoch.toString() + '.jpg';
+      final savedImage =
+      await File(pickedFile.path).copy('${appDir.path}/$fileName');
       setState(() {
         _imageFile = savedImage;
       });
@@ -72,9 +75,8 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
         _amountController.text.isEmpty ||
         _selectedCategory == null ||
         _dateController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please fill all fields')),
-      );
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('Please fill all fields')));
       return;
     }
 
@@ -97,38 +99,35 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
 
     try {
       if (widget.expenseId == null) {
-        await FirebaseFirestore.instance.collection('expenses').add({
-          ...data,
-          'createdAt': Timestamp.now(),
-        });
+        await FirebaseFirestore.instance
+            .collection('expenses')
+            .add({...data, 'createdAt': Timestamp.now()});
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Expense added successfully')),
-        );
+            const SnackBar(content: Text('Expense added successfully')));
       } else {
         await FirebaseFirestore.instance
             .collection('expenses')
             .doc(widget.expenseId)
             .update(data);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Expense updated successfully')),
-        );
+            const SnackBar(content: Text('Expense updated successfully')));
       }
-
       Navigator.pop(context);
     } catch (e) {
       print('Error saving expense: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Error saving expense')),
-      );
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('Error saving expense')));
+    } finally {
+      setState(() => _isLoading = false);
     }
-
-    setState(() => _isLoading = false);
   }
 
   Future<void> _selectDate(BuildContext context) async {
     final picked = await showDatePicker(
       context: context,
-      initialDate: DateTime.now(),
+      initialDate: _dateController.text.isNotEmpty
+          ? DateFormat('yyyy-MM-dd').parse(_dateController.text)
+          : DateTime.now(),
       firstDate: DateTime(2020),
       lastDate: DateTime(2101),
     );
@@ -140,114 +139,235 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
   @override
   Widget build(BuildContext context) {
     final isEditMode = widget.expenseId != null;
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
+    // Theme accent color for AppBar and buttons
+    final accent = isDarkMode ? Colors.tealAccent : const Color(0xFF00897B);
+    final backgroundGradient = isDarkMode
+        ? [Colors.grey.shade900, Colors.grey.shade800]
+        : [const Color(0xFFA8E6CF), Colors.white];
+    final textFieldColor = isDarkMode ? Colors.grey.shade800 : Colors.white;
+    final hintColor = isDarkMode ? Colors.grey.shade400 : Colors.grey.shade600;
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(isEditMode ? 'Edit Expense' : 'Add Expense'),
-        backgroundColor: Colors.teal,
+        title: Text(
+          isEditMode ? 'Edit Expense' : 'Add Expense',
+          style: TextStyle(
+            color: accent,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        backgroundColor: isDarkMode ? Colors.black87 : Colors.white,
+        elevation: 0,
+        iconTheme: IconThemeData(color: accent),
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            TextField(
-              controller: _titleController,
-              decoration: const InputDecoration(
-                labelText: 'Expense Title',
-                border: OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: 15),
-            TextField(
-              controller: _amountController,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                labelText: 'Amount',
-                border: OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: 15),
-            DropdownButtonFormField<String>(
-              value: _selectedCategory,
-              decoration: const InputDecoration(
-                labelText: 'Category',
-                border: OutlineInputBorder(),
-              ),
-              items: _categories.map((category) {
-                return DropdownMenuItem<String>(
-                  value: category,
-                  child: Text(category),
-                );
-              }).toList(),
-              onChanged: (value) => setState(() {
-                _selectedCategory = value!;
-              }),
-            ),
-            const SizedBox(height: 15),
-            TextField(
-              controller: _dateController,
-              readOnly: true,
-              decoration: InputDecoration(
-                labelText: 'Date',
-                border: const OutlineInputBorder(),
-                suffixIcon: IconButton(
-                  icon: const Icon(Icons.calendar_today),
-                  onPressed: () => _selectDate(context),
-                ),
-              ),
-            ),
-            const SizedBox(height: 15),
-
-            // Image picker and open image
-            GestureDetector(
-              onTap: _pickImage,
-              child: Container(
-                height: 150,
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: _imageFile != null
-                    ? GestureDetector(
-                  onTap: () => _openImage(_imageFile!),
-                  child: Image.file(_imageFile!, fit: BoxFit.cover),
-                )
-                    : _existingImagePath != null &&
-                    _existingImagePath!.isNotEmpty
-                    ? GestureDetector(
-                  onTap: () =>
-                      _openImage(File(_existingImagePath!)),
-                  child: Image.file(File(_existingImagePath!),
-                      fit: BoxFit.cover),
-                )
-                    : const Center(
-                  child: Text(
-                    'Tap to add attachment (optional)',
-                    style: TextStyle(color: Colors.grey),
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: backgroundGradient,
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
+        child: _isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : SingleChildScrollView(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildLabel('Expense Title', accent),
+              _buildTextField(_titleController, 'Enter title',
+                  color: textFieldColor, hintColor: hintColor),
+              const SizedBox(height: 16),
+              _buildLabel('Amount', accent),
+              _buildTextField(_amountController, 'Enter amount',
+                  keyboard: TextInputType.number,
+                  color: textFieldColor,
+                  hintColor: hintColor),
+              const SizedBox(height: 16),
+              _buildLabel('Category', accent),
+              _buildDropdown(textFieldColor),
+              const SizedBox(height: 16),
+              _buildLabel('Date', accent),
+              _buildDatePicker(context, textFieldColor, hintColor),
+              const SizedBox(height: 16),
+              _buildLabel('Attachment (optional)', accent),
+              GestureDetector(
+                onTap: _pickImage,
+                child: Container(
+                  height: 160,
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    color: textFieldColor,
+                    border: Border.all(color: accent.withOpacity(0.3)),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: _imageFile != null
+                      ? GestureDetector(
+                    onTap: () => _openImage(_imageFile!),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
+                      child: Image.file(
+                        _imageFile!,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  )
+                      : _existingImagePath != null &&
+                      _existingImagePath!.isNotEmpty
+                      ? GestureDetector(
+                    onTap: () =>
+                        _openImage(File(_existingImagePath!)),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
+                      child: Image.file(
+                        File(_existingImagePath!),
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  )
+                      : Center(
+                    child: Text(
+                      'Tap to add an image',
+                      style: TextStyle(
+                        color: hintColor,
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
                   ),
                 ),
               ),
-            ),
-            const SizedBox(height: 20),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: _saveExpense,
-                icon: const Icon(Icons.save),
-                label: Text(
-                    isEditMode ? 'Update Expense' : 'Save Expense'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.teal,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  textStyle: const TextStyle(fontSize: 16),
+              const SizedBox(height: 25),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: _saveExpense,
+                  icon: Icon(Icons.save, color: Colors.white),
+                  label: Text(
+                    isEditMode ? 'Update Expense' : 'Save Expense',
+                    style: const TextStyle(color: Colors.white),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: accent,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    textStyle: const TextStyle(fontSize: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    elevation: 4,
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLabel(String text, Color accent) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: Text(
+        text,
+        style: TextStyle(
+          fontWeight: FontWeight.w600,
+          color: accent,
+          fontSize: 15,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTextField(TextEditingController controller, String hint,
+      {TextInputType keyboard = TextInputType.text,
+        Color color = Colors.white,
+        Color hintColor = Colors.grey}) {
+    return Container(
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(10),
+        boxShadow: [
+          BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              offset: const Offset(0, 2),
+              blurRadius: 4)
+        ],
+      ),
+      child: TextField(
+        controller: controller,
+        keyboardType: keyboard,
+        style: TextStyle(color: hintColor),
+        decoration: InputDecoration(
+          hintText: hint,
+          hintStyle: TextStyle(color: hintColor),
+          contentPadding:
+          const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          border: InputBorder.none,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDropdown(Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(10),
+        boxShadow: [
+          BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              offset: const Offset(0, 2),
+              blurRadius: 4)
+        ],
+      ),
+      child: DropdownButtonFormField<String>(
+        value: _selectedCategory,
+        decoration: const InputDecoration(border: InputBorder.none),
+        items: _categories.map((category) {
+          return DropdownMenuItem<String>(
+            value: category,
+            child: Text(category),
+          );
+        }).toList(),
+        onChanged: (value) => setState(() {
+          _selectedCategory = value!;
+        }),
+      ),
+    );
+  }
+
+  Widget _buildDatePicker(BuildContext context, Color color, Color hintColor) {
+    return Container(
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(10),
+        boxShadow: [
+          BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              offset: const Offset(0, 2),
+              blurRadius: 4)
+        ],
+      ),
+      child: TextField(
+        controller: _dateController,
+        readOnly: true,
+        style: TextStyle(color: hintColor),
+        decoration: InputDecoration(
+          hintText: 'Select date',
+          hintStyle: TextStyle(color: hintColor),
+          contentPadding:
+          const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          border: InputBorder.none,
+          suffixIcon: IconButton(
+            icon: Icon(Icons.calendar_today, color: hintColor),
+            onPressed: () => _selectDate(context),
+          ),
         ),
       ),
     );

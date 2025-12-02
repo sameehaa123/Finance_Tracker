@@ -5,11 +5,11 @@ plugins {
 }
 
 android {
-    namespace = "com.sameeha.ai_poweredfinancetracker"
+    namespace = "com.sameeha.aipoweredfinancetracker"
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.sameeha.ai_poweredfinancetracker"
+        applicationId = "com.sameeha.aipoweredfinancetracker"
         minSdk = flutter.minSdkVersion
         targetSdk = 34
         versionCode = 1

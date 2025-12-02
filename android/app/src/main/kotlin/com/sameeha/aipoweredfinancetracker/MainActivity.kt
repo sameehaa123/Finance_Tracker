@@ -1,4 +1,4 @@
-package com.sameeha.ai_poweredfinancetracker
+package com.sameeha.aipoweredfinancetracker
 
 import io.flutter.embedding.android.FlutterActivity
 

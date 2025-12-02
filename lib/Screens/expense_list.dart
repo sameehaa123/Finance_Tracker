@@ -1,6 +1,9 @@
+import 'dart:io';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'add_expense.dart';
+import '../services/theme_service.dart';
 
 class ListExpensesScreen extends StatelessWidget {
   const ListExpensesScreen({Key? key}) : super(key: key);
@@ -18,144 +21,170 @@ class ListExpensesScreen extends StatelessWidget {
       );
     }
   }
-
   @override
   Widget build(BuildContext context) {
+    final user = FirebaseAuth.instance.currentUser!;
+    final isDark = ThemeService.isDark.value;
+    final accent = const Color(0xFF00897B);
+    final backgroundGradient = isDark
+        ? [Color(0xFF081427), Color(0xFF17233A)]
+        : [Color(0xFFA8E6CF), Colors.white];
+    final textColor = isDark ? Colors.white : Colors.black87;
+    final subTextColor = isDark ? Colors.white70 : Colors.black54;
+    final cardColor = isDark ? Colors.white10 : Colors.white;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('My Expenses'),
-        backgroundColor: Colors.teal,
+        backgroundColor: accent,
       ),
-      body: StreamBuilder<QuerySnapshot>(
-        stream: FirebaseFirestore.instance
-            .collection('expenses')
-            .orderBy('date', descending: true)
-            .snapshots(),
-        builder: (context, snapshot) {
-          if (snapshot.hasError) {
-            return const Center(child: Text('Something went wrong'));
-          }
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: backgroundGradient,
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
+        child: StreamBuilder<QuerySnapshot>(
+          stream: FirebaseFirestore.instance
+              .collection('expenses')
+              .where('userId', isEqualTo: user.uid)
+              .orderBy('date', descending: true)
+              .snapshots(),
+          builder: (context, snapshot) {
+            if (snapshot.hasError) {
+              return Center(
+                  child: Text('Something went wrong',
+                      style: TextStyle(color: textColor)));
+            }
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
 
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-
-          final expenses = snapshot.data!.docs;
-
-          if (expenses.isEmpty) {
-            return const Center(
-              child: Text(
-                'No expenses found.\nTap + to add your first one!',
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 16, color: Colors.grey),
-              ),
-            );
-          }
-
-          return ListView.builder(
-            itemCount: expenses.length,
-            itemBuilder: (context, index) {
-              final doc = expenses[index];
-              final data = doc.data() as Map<String, dynamic>;
-
-              return Card(
-                margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10)),
-                elevation: 2,
-                child: ListTile(
-                  leading: data['imageUrl'] != null &&
-                      data['imageUrl'].toString().isNotEmpty
-                      ? ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: Image.network(
-                      data['imageUrl'],
-                      width: 50,
-                      height: 50,
-                      fit: BoxFit.cover,
-                    ),
-                  )
-                      : const Icon(Icons.receipt_long, color: Colors.teal),
-
-                  title: Text(
-                    data['title'] ?? 'Untitled',
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  subtitle: Text(
-                    '${data['category']} • ${data['date']}',
-                    style: const TextStyle(color: Colors.black54),
-                  ),
-
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      // Edit button
-                      IconButton(
-                        icon: const Icon(Icons.edit, color: Colors.teal),
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => AddExpenseScreen(
-                                expenseId: doc.id,
-                                expenseData: data,
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                      // Delete button
-                      IconButton(
-                        icon: const Icon(Icons.delete, color: Colors.red),
-                        onPressed: () {
-                          showDialog(
-                            context: context,
-                            builder: (_) => AlertDialog(
-                              title: const Text('Delete Expense'),
-                              content: const Text(
-                                  'Are you sure you want to delete this expense?'),
-                              actions: [
-                                TextButton(
-                                  onPressed: () => Navigator.pop(context),
-                                  child: const Text('Cancel'),
-                                ),
-                                TextButton(
-                                  onPressed: () {
-                                    Navigator.pop(context);
-                                    _deleteExpense(doc.id, context);
-                                  },
-                                  child: const Text(
-                                    'Delete',
-                                    style: TextStyle(color: Colors.red),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          );
-                        },
-                      ),
-                    ],
-                  ),
-
-                  // Show amount on right
-                  onTap: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          '${data['title']} → AED ${data['amount'].toString()}',
-                        ),
-                        duration: const Duration(seconds: 2),
-                      ),
-                    );
-                  },
+            final expenses = snapshot.data!.docs;
+            if (expenses.isEmpty) {
+              return Center(
+                child: Text(
+                  'No expenses found.\nTap + to add your first one!',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 16, color: subTextColor),
                 ),
               );
-            },
-          );
-        },
+            }
+
+            return ListView.builder(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              itemCount: expenses.length,
+              itemBuilder: (context, index) {
+                final doc = expenses[index];
+                final data = doc.data() as Map<String, dynamic>;
+
+                return Card(
+                  color: cardColor,
+                  margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12)),
+                  elevation: 2,
+                  child: ListTile(
+                    leading: data['imagePath'] != null &&
+                        data['imagePath'].toString().isNotEmpty
+                        ? ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child:
+                      Image.file(
+                      File(data['imagePath']),
+                        width: 50,
+                        height: 50,
+                      fit: BoxFit.cover,
+                      ),
+                    )
+                        : Icon(Icons.receipt_long, color: accent, size: 28),
+                    title: Text(
+                      data['title'] ?? 'Untitled',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: textColor,
+                      ),
+                    ),
+                    subtitle: Text(
+                      '${data['category']} • ${data['date']}',
+                      style: TextStyle(color: subTextColor),
+                    ),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          icon: Icon(Icons.edit, color: accent),
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => AddExpenseScreen(
+                                  expenseId: doc.id,
+                                  expenseData: data,
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.delete, color: Colors.red),
+                          onPressed: () {
+                            showDialog(
+                              context: context,
+                              builder: (_) => AlertDialog(
+                                backgroundColor: cardColor,
+                                title: Text(
+                                  'Delete Expense',
+                                  style: TextStyle(color: textColor),
+                                ),
+                                content: Text(
+                                  'Are you sure you want to delete this expense?',
+                                  style: TextStyle(color: subTextColor),
+                                ),
+                                actions: [
+                                  TextButton(
+                                      onPressed: () => Navigator.pop(context),
+                                      child: Text(
+                                        'Cancel',
+                                        style: TextStyle(color: accent),
+                                      )),
+                                  TextButton(
+                                    onPressed: () {
+                                      Navigator.pop(context);
+                                      _deleteExpense(doc.id, context);
+                                    },
+                                    child: const Text(
+                                      'Delete',
+                                      style: TextStyle(color: Colors.red),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                        ),
+                      ],
+                    ),
+                    onTap: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                              '${data['title']} → AED ${data['amount'].toString()}'),
+                          duration: const Duration(seconds: 2),
+                        ),
+                      );
+                    },
+                  ),
+                );
+              },
+            );
+          },
+        ),
       ),
       floatingActionButton: FloatingActionButton(
-        backgroundColor: Colors.teal,
+        backgroundColor: accent,
         onPressed: () {
           Navigator.push(
             context,
