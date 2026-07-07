@@ -1,7 +1,8 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../Screens/login_screen.dart';
+import '../../Screens/login_screen.dart';
+import '../../features/auth/view/login_screen.dart';
 
 Future<void> appLogout(BuildContext context) async {
   final prefs = await SharedPreferences.getInstance();

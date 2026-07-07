@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../services/theme_service.dart';
-import '../Screens/settings_screen.dart';
-import '../utils/logout_util.dart';
+import '../../../services/theme_service.dart';
+import '../../settings/view/settings_screen.dart';
+import '../../../core/utils/logout_util.dart';
 
 PreferredSizeWidget commonDashboardAppBar({
   required BuildContext context,

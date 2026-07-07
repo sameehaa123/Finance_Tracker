@@ -1,11 +1,11 @@
 import 'dart:io';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:open_file/open_file.dart';
+import '../controller/expense_controller.dart';
+
 
 class AddExpenseScreen extends StatefulWidget {
   final String? expenseId; // null = add, non-null = edit
@@ -68,59 +68,6 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
     await OpenFile.open(imageFile.path);
   }
 
-  Future<void> _saveExpense() async {
-    final user = FirebaseAuth.instance.currentUser;
-
-    if (_titleController.text.isEmpty ||
-        _amountController.text.isEmpty ||
-        _selectedCategory == null ||
-        _dateController.text.isEmpty) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('Please fill all fields')));
-      return;
-    }
-
-    setState(() => _isLoading = true);
-
-    String? imagePath = _existingImagePath;
-    if (_imageFile != null) {
-      imagePath = _imageFile!.path;
-    }
-
-    final data = {
-      'title': _titleController.text,
-      'amount': double.parse(_amountController.text),
-      'category': _selectedCategory,
-      'date': _dateController.text,
-      'imagePath': imagePath ?? '',
-      'updatedAt': Timestamp.now(),
-      'userId': user?.uid,
-    };
-
-    try {
-      if (widget.expenseId == null) {
-        await FirebaseFirestore.instance
-            .collection('expenses')
-            .add({...data, 'createdAt': Timestamp.now()});
-        ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Expense added successfully')));
-      } else {
-        await FirebaseFirestore.instance
-            .collection('expenses')
-            .doc(widget.expenseId)
-            .update(data);
-        ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Expense updated successfully')));
-      }
-      Navigator.pop(context);
-    } catch (e) {
-      print('Error saving expense: $e');
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('Error saving expense')));
-    } finally {
-      setState(() => _isLoading = false);
-    }
-  }
 
   Future<void> _selectDate(BuildContext context) async {
     final picked = await showDatePicker(
@@ -268,6 +215,60 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
       ),
     );
   }
+  Future<void> _saveExpense() async {
+  // Validation stays in View
+  if (_titleController.text.isEmpty ||
+      _amountController.text.isEmpty ||
+      _selectedCategory == null ||
+      _dateController.text.isEmpty) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Please fill all fields')),
+    );
+    return;
+  }
+
+  setState(() => _isLoading = true);
+
+  try {
+    // Create controller object
+    ExpenseController expenseController = ExpenseController();
+
+    // Call controller method
+    await expenseController.saveExpense(
+      title: _titleController.text,
+      amount: _amountController.text,
+      date: _dateController.text,
+      category: _selectedCategory,
+      imageFile: _imageFile,
+      existingImagePath: _existingImagePath,
+      expenseId: widget.expenseId,
+    );
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            widget.expenseId == null
+                ? 'Expense added successfully'
+                : 'Expense updated successfully',
+          ),
+        ),
+      );
+
+        Navigator.pop(context);
+    }
+  } catch (e) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
+      );
+    }
+  } finally {
+    if (mounted) {
+      setState(() => _isLoading = false);
+    }
+  }
+}
 
   Widget _buildLabel(String text, Color accent) {
     return Padding(

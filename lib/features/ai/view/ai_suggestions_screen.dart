@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../services/gemini_service.dart';
+import '../../../services/gemini_service.dart';
 
 class AiSuggestionsScreen extends StatefulWidget {
   final double total;

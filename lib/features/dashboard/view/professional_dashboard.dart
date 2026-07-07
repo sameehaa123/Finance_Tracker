@@ -16,17 +16,17 @@
 // }
 import 'dart:convert';
 
-import 'package:ai_poweredfinancetracker/widgets/upcoming_bills_banner.dart';
+import 'package:ai_poweredfinancetracker/features/reminder/view/widgets/upcoming_bills_banner.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../Services/show_popup_service.dart';
-import 'add_expense.dart';
-import 'expense_list.dart';
-import 'ai_suggestions_screen.dart';
+import '../../../core/Services/show_popup_service.dart';
+import '../../expense/view/add_expense.dart';
+import '../../expense/view/expense_list.dart';
+import '../../ai/view/ai_suggestions_screen.dart';
 import '../widgets/common_dashboard_appbar.dart';
 
 class ProfessionalDashboard extends StatefulWidget {

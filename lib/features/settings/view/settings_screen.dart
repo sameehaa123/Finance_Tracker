@@ -1,10 +1,10 @@
 import 'dart:convert';
 
-import 'package:ai_poweredfinancetracker/Screens/bill_reminders_list_screen.dart';
+import 'package:ai_poweredfinancetracker/features/reminder/view/bill_reminders_list_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'add_bill_reminder_screen.dart';
+import '../../reminder/view/add_bill_reminder_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
