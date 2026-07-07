@@ -2,28 +2,18 @@ import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../controller/expense_controller.dart';
 import 'add_expense.dart';
 import '../../../services/theme_service.dart';
 
 class ListExpensesScreen extends StatelessWidget {
   const ListExpensesScreen({Key? key}) : super(key: key);
 
-  Future<void> _deleteExpense(String id, BuildContext context) async {
-    try {
-      await FirebaseFirestore.instance.collection('expenses').doc(id).delete();
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Expense deleted')),
-      );
-    } catch (e) {
-      print('Error deleting expense: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Failed to delete expense')),
-      );
-    }
-  }
+  
   @override
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser!;
+    ExpenseController expenseController = ExpenseController();
     final isDark = ThemeService.isDark.value;
     final accent = const Color(0xFF00897B);
     final backgroundGradient = isDark
@@ -47,12 +37,8 @@ class ListExpensesScreen extends StatelessWidget {
           ),
         ),
         child: StreamBuilder<QuerySnapshot>(
-          stream: FirebaseFirestore.instance
-              .collection('expenses')
-              .where('userId', isEqualTo: user.uid)
-              .orderBy('date', descending: true)
-              .snapshots(),
-          builder: (context, snapshot) {
+          stream: expenseController.getExpenses(user.uid),
+           builder: (context, snapshot) {
             if (snapshot.hasError) {
               return Center(
                   child: Text('Something went wrong',
@@ -151,10 +137,28 @@ class ListExpensesScreen extends StatelessWidget {
                                         style: TextStyle(color: accent),
                                       )),
                                   TextButton(
-                                    onPressed: () {
-                                      Navigator.pop(context);
-                                      _deleteExpense(doc.id, context);
-                                    },
+                                    onPressed: () async {
+                                  Navigator.pop(context);
+             try {
+                     ExpenseController expenseController = ExpenseController();
+                     await expenseController.deleteExpense(doc.id);
+            if (context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+               const SnackBar(
+               content: Text('Expense deleted'),
+        ),
+      );
+    }
+  } catch (e) {
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Failed to delete expense'),
+        ),
+      );
+    }
+  }
+},
                                     child: const Text(
                                       'Delete',
                                       style: TextStyle(color: Colors.red),

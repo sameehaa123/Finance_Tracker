@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../services/gemini_service.dart';
+import '../controller/ai_controller.dart';
 
 class AiSuggestionsScreen extends StatefulWidget {
   final double total;
@@ -34,15 +34,12 @@ class _AiSuggestionsScreenState extends State<AiSuggestionsScreen> {
     });
 
     try {
-      final prompt = _buildPromptFromData();
-      final rawText = await GeminiService.getSuggestion(prompt);
-
-      // Split into bullet-like lines
-      final lines = rawText
-          .split(RegExp(r'\n|\r'))
-          .map((e) => e.replaceAll(RegExp(r'^[\s\-\•0-9\.\)]*'), '').trim())
-          .where((e) => e.isNotEmpty)
-          .toList();
+      AIController aiController = AIController();
+      final prompt = aiController.buildPromptFromData(
+  widget.total,
+  widget.categoryTotals,
+);
+    final lines = await aiController.getSuggestions(prompt);
 
       setState(() {
         _suggestions = lines;
@@ -56,31 +53,7 @@ class _AiSuggestionsScreenState extends State<AiSuggestionsScreen> {
     }
   }
 
-  String _buildPromptFromData() {
-    final buffer = StringBuffer();
-    buffer.writeln(
-        "You are a friendly financial advisor for a personal finance app called Spendly.");
-    buffer.writeln(
-        "Based on the user's recent spending, give 5 short, practical suggestions to manage money better.");
-    buffer.writeln(
-        "Make each suggestion simple, specific, and no more than 20 words.");
-    buffer.writeln("");
 
-    buffer.writeln("Total spent: ${widget.total.toStringAsFixed(2)} AED.");
-
-    if (widget.categoryTotals.isNotEmpty) {
-      buffer.writeln("Breakdown by category (AED):");
-      widget.categoryTotals.forEach((cat, value) {
-        buffer.writeln("- $cat: ${value.toStringAsFixed(2)}");
-      });
-    }
-
-    buffer.writeln(
-        "Focus on helping the user save money, control overspending, and build better habits.");
-    buffer.writeln("Return ONLY the suggestions as a bullet list.");
-
-    return buffer.toString();
-  }
 
   @override
   Widget build(BuildContext context) {

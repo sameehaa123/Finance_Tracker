@@ -1,6 +1,5 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import '../controller/reminder_controller.dart';
 
 class AddBillReminderScreen extends StatefulWidget {
   const AddBillReminderScreen({super.key});
@@ -21,7 +20,7 @@ class _AddBillReminderScreenState extends State<AddBillReminderScreen> {
   bool _isSaving = false;
 
   // 🔹 Category dropdown
-  final List<String> _categories = [
+  final List<String> categories = [
     'Food',
     'Transport',
     'Shopping',
@@ -74,54 +73,41 @@ class _AddBillReminderScreenState extends State<AddBillReminderScreen> {
       return;
     }
 
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('User not logged in'),
-        ),
-      );
-      return;
-    }
-
+    
     setState(() {
       _isSaving = true;
     });
 
-    final DateTime dueDateTime = DateTime(
-      _selectedDate!.year,
-      _selectedDate!.month,
-      _selectedDate!.day,
-      _selectedTime!.hour,
-      _selectedTime!.minute,
+try {
+  // Create controller object
+  ReminderController reminderController = ReminderController();
+
+  // Call controller method
+  await reminderController.saveReminder(
+    title: title,
+    description: desc,
+    category: _selectedCategory,
+    amount: _amountController.text.trim(),
+    selectedDate: _selectedDate!,
+    selectedTime: _selectedTime!,
+  );
+
+  if (mounted) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Bill reminder saved')),
     );
+    Navigator.pop(context);
+  }
+} catch (e) {
+  if (mounted) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Error saving reminder: $e')),
+    );
+  }
+}
 
-    try {
-      await FirebaseFirestore.instance
-          .collection('billReminders')
-          .add({
-        'userId': user.uid,
-        'title': title,
-        'category': _selectedCategory,
-        'description': desc,
-        'amount': amount,
-        'dueAt': Timestamp.fromDate(dueDateTime),
-        'createdAt': FieldValue.serverTimestamp(),
-      });
 
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Bill reminder saved')),
-        );
-        Navigator.pop(context);
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error saving reminder: $e')),
-        );
-      }
-    } finally {
+      finally {
       if (mounted) {
         setState(() {
           _isSaving = false;
@@ -129,6 +115,8 @@ class _AddBillReminderScreenState extends State<AddBillReminderScreen> {
       }
     }
   }
+
+
 
   @override
   void dispose() {

@@ -47,5 +47,23 @@ class ExpenseController {
 
     }
   }
+  Future<void> deleteExpense(String id) async {
+
+    await FirebaseFirestore.instance
+        .collection('expenses')
+        .doc(id)
+        .delete();
+
+  }
+
+  Stream<QuerySnapshot> getExpenses(String userId) {
+
+    return FirebaseFirestore.instance
+        .collection('expenses')
+        .where('userId', isEqualTo: userId)
+        .orderBy('date', descending: true)
+        .snapshots();
 
 }
+} 
+
