@@ -204,19 +204,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ),
 
                     const SizedBox(height: 18),
-                    _isLoading
-                        ? const CircularProgressIndicator()
-                        : SizedBox(
+                    if (_isLoading) const CircularProgressIndicator() else SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
                         onPressed: _register,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: accent,
+                          foregroundColor: Colors.white,
+                            padding:
+                            const EdgeInsets.symmetric(vertical: 14.0)
                         ),
                         child: const Padding(
                           padding:
                           EdgeInsets.symmetric(vertical: 12.0),
-                          child: Text("Register"),
                         ),
                       ),
                     ),

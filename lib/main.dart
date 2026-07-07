@@ -130,13 +130,19 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'services/theme_service.dart';
+import 'services/gemini_config.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
   await Firebase.initializeApp();
   await ThemeService.init();
+
+  await GeminiConfig.load();
+
   runApp(const SpendlyApp());
 }
+
 
 class SpendlyApp extends StatelessWidget {
   const SpendlyApp({super.key});
