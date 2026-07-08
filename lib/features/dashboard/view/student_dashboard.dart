@@ -1,51 +1,22 @@
-// import 'package:flutter/material.dart';
-// import 'dashboard_screen.dart'; // your existing dashboard widget
-//
-// class StudentDashboard extends StatelessWidget {
-//   const StudentDashboard({super.key});
-//
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       appBar: AppBar(
-//         title: const Text("Student Dashboard"),
-//       ),
-//       body: Column(
-//         children: const [
-//           Expanded(
-//             child: Dashboard(), // embeds your existing dashboard
-//           ),
-//         ],
-//       ),
-//     );
-//   }
-// }
 import 'package:ai_poweredfinancetracker/features/reminder/view/widgets/upcoming_bills_banner.dart';
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:convert';
-import 'package:shared_preferences/shared_preferences.dart';
-
 import '../../../core/Services/show_popup_service.dart';
 import '../../expense/view/add_expense.dart';
 import '../../expense/view/expense_list.dart';
 import '../../ai/view/ai_suggestions_screen.dart';
 import '../widgets/common_dashboard_appbar.dart';
+import '../controller/dashboard_controller.dart';
 
 class StudentDashboard extends StatefulWidget {
-  const StudentDashboard({Key? key}) : super(key: key);
+  const StudentDashboard({super.key});
 
   @override
   State<StudentDashboard> createState() => _StudentDashboardState();
 }
 
 class _StudentDashboardState extends State<StudentDashboard> {
-  final user = FirebaseAuth.instance.currentUser!;
-  double total = 0;
-  Map<String, double> categoryTotals = {};
+   final DashboardController dashboardController = DashboardController();
 
   final List<Color> sliceColors = const [
     Color(0xFF4DB6AC),
@@ -57,125 +28,22 @@ class _StudentDashboardState extends State<StudentDashboard> {
   ];
 
   @override
-  void initState() {
-    super.initState();
-    fetchExpenses();
-    checkUpcomingBills(context);
+void initState() {
+  super.initState();
+
+  dashboardController.addListener(_refreshScreen);
+
+  dashboardController.fetchExpenses(context);
+
+  checkUpcomingBills(context);
+}
+
+void _refreshScreen() {
+  if (mounted) {
+    setState(() {});
   }
-  Future<void> fetchExpenses() async {
-    final snapshot = await FirebaseFirestore.instance
-        .collection('expenses')
-        .where('userId', isEqualTo: user.uid)
-        .get();
-
-    double totalAmount = 0;
-    Map<String, double> catTotals = {};
-
-    for (var doc in snapshot.docs) {
-      final data = doc.data();
-      double amount = 0;
-      try {
-        amount = (data['amount'] ?? 0).toDouble();
-      } catch (_) {
-        amount = double.tryParse(data['amount'].toString()) ?? 0;
-      }
-      final cat = data['category'] ?? 'Other';
-      totalAmount += amount;
-      catTotals[cat] = (catTotals[cat] ?? 0) + amount;
-    }
-
-    // 🔹 Load monthly & category limits
-    final prefs = await SharedPreferences.getInstance();
-    final monthlyLimit = prefs.getDouble('monthlyLimit');
-
-    // check monthly total
-    if (monthlyLimit != null && totalAmount > monthlyLimit && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("⚠ You have exceeded your monthly limit!"),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
-
-    // check per-category limits
-    final raw = prefs.getString('categoryLimits');
-    if (raw != null && raw.isNotEmpty && mounted) {
-      final decoded = jsonDecode(raw) as Map<String, dynamic>;
-      final limits = decoded.map(
-            (key, value) => MapEntry(key, (value as num).toDouble()),
-      );
-
-      for (final entry in catTotals.entries) {
-        final cat = entry.key;
-        final spent = entry.value;
-        final limit = limits[cat];
-
-        if (limit != null && spent > limit) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                "⚠ You exceeded the limit for $cat (AED ${spent.toStringAsFixed(2)} > AED ${limit.toStringAsFixed(2)})",
-              ),
-              backgroundColor: Colors.orange,
-            ),
-          );
-          break; // show one warning at a time
-        }
-      }
-    }
-
-    if (mounted) {
-      setState(() {
-        total = totalAmount;
-        categoryTotals = catTotals;
-      });
-    }
-  }
-
-  // Future<void> fetchExpenses() async {
-  //   final snapshot = await FirebaseFirestore.instance
-  //       .collection('expenses')
-  //       .where('userId', isEqualTo: user.uid)
-  //       .get();
-  //
-  //   double totalAmount = 0;
-  //   Map<String, double> catTotals = {};
-  //
-  //   for (var doc in snapshot.docs) {
-  //     final data = doc.data();
-  //     double amount = 0;
-  //     try {
-  //       amount = (data['amount'] ?? 0).toDouble();
-  //     } catch (_) {
-  //       amount = double.tryParse(data['amount'].toString()) ?? 0;
-  //     }
-  //
-  //     final cat = data['category'] ?? 'Other';
-  //     totalAmount += amount;
-  //     catTotals[cat] = (catTotals[cat] ?? 0) + amount;
-  //   }
-  //
-  //   // 🔹 Monthly limit check from SharedPreferences
-  //   final prefs = await SharedPreferences.getInstance();
-  //   final limit = prefs.getDouble('monthlyLimit');
-  //
-  //   if (limit != null && totalAmount > limit && mounted) {
-  //     ScaffoldMessenger.of(context).showSnackBar(
-  //       const SnackBar(
-  //         content: Text("⚠ You have exceeded your monthly limit!"),
-  //         backgroundColor: Colors.red,
-  //       ),
-  //     );
-  //   }
-  //
-  //   if (mounted) {
-  //     setState(() {
-  //       total = totalAmount;
-  //       categoryTotals = catTotals;
-  //     });
-  //   }
-  // }
+}
+  
 
   @override
   Widget build(BuildContext context) {
@@ -250,7 +118,7 @@ class _StudentDashboardState extends State<StudentDashboard> {
                           },
                           child: SizedBox(
                             height: 250,
-                            child: categoryTotals.isEmpty
+                            child: dashboardController.categoryTotals.isEmpty
                                 ? const Center(
                               child: Text("No data yet"),
                             )
@@ -259,9 +127,9 @@ class _StudentDashboardState extends State<StudentDashboard> {
                                 centerSpaceRadius: 60,
                                 sectionsSpace: 2,
                                 startDegreeOffset: -90,
-                                sections: categoryTotals.entries
+                                sections: dashboardController.categoryTotals.entries
                                     .map((e) {
-                                  final idx = categoryTotals.keys
+                                  final idx = dashboardController.categoryTotals.keys
                                       .toList()
                                       .indexOf(e.key);
                                   final color = sliceColors[
@@ -279,7 +147,7 @@ class _StudentDashboardState extends State<StudentDashboard> {
                         ),
                         const SizedBox(height: 40),
                         Text(
-                          "AED ${total.toStringAsFixed(2)}",
+                          "AED ${dashboardController.total.toStringAsFixed(2)}",
                           style: TextStyle(
                             fontSize: 22,
                             fontWeight: FontWeight.bold,
@@ -301,8 +169,8 @@ class _StudentDashboardState extends State<StudentDashboard> {
                           alignment: WrapAlignment.center,
                           spacing: 16,
                           runSpacing: 8,
-                          children: categoryTotals.entries.map((entry) {
-                            final idx = categoryTotals.keys
+                          children: dashboardController.categoryTotals.entries.map((entry) {
+                            final idx = dashboardController.categoryTotals.keys
                                 .toList()
                                 .indexOf(entry.key);
                             final color =
@@ -343,15 +211,15 @@ class _StudentDashboardState extends State<StudentDashboard> {
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton.icon(
-                    onPressed: categoryTotals.isEmpty
+                    onPressed: dashboardController.categoryTotals.isEmpty
                         ? null
                         : () {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
                           builder: (_) => AiSuggestionsScreen(
-                            total: total,
-                            categoryTotals: categoryTotals,
+                            total: dashboardController.total,
+                            categoryTotals: dashboardController.categoryTotals,
                           ),
                         ),
                       );
@@ -388,10 +256,15 @@ class _StudentDashboardState extends State<StudentDashboard> {
           Navigator.push(
             context,
             MaterialPageRoute(builder: (_) => const AddExpenseScreen()),
-          ).then((_) => fetchExpenses());
+          ).then((_) => dashboardController.fetchExpenses(context));
         },
         child: const Icon(Icons.add, size: 28),
       ),
     );
   }
+  @override
+void dispose() {
+  dashboardController.removeListener(_refreshScreen);
+  super.dispose();
+}
 }

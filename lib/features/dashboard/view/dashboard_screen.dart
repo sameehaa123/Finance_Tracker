@@ -2,17 +2,16 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import '../../../core/theme/theme_service.dart';
 import '../../auth/view/login_screen.dart';
 import '../../expense/view/add_expense.dart';
-import '../../../Screens/login_screen.dart';
 import '../../expense/view/expense_list.dart'; // <-- import your expense list screen
 import '../../ai/view/ai_suggestions_screen.dart'; // <-- NEW: AI suggestions screen
 import 'package:fl_chart/fl_chart.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../../../services/theme_service.dart';
 
 class Dashboard extends StatefulWidget {
-  const Dashboard({Key? key}) : super(key: key);
+  const Dashboard({super.key});
 
   @override
   _DashboardState createState() => _DashboardState();

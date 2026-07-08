@@ -6,10 +6,10 @@ class AiSuggestionsScreen extends StatefulWidget {
   final Map<String, double> categoryTotals;
 
   const AiSuggestionsScreen({
-    Key? key,
+    super.key,
     required this.total,
     required this.categoryTotals,
-  }) : super(key: key);
+  });
 
   @override
   State<AiSuggestionsScreen> createState() => _AiSuggestionsScreenState();

@@ -1,10 +1,8 @@
-import 'dart:convert';
-
 import 'package:ai_poweredfinancetracker/features/reminder/view/bill_reminders_list_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../reminder/view/add_bill_reminder_screen.dart';
+import '../controller/settings_controller.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -14,6 +12,7 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
+  final SettingsController settingsController = SettingsController();
   final TextEditingController _monthlyLimitController =
   TextEditingController();
   final TextEditingController _categoryLimitController =
@@ -33,88 +32,104 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Map<String, double> _categoryLimits = {};
 
   @override
-  void initState() {
-    super.initState();
-    _loadSettings();
+void initState() {
+  super.initState();
+  _loadSettings();
+}
+
+Future<void> _loadSettings() async {
+  final data = await settingsController.loadSettings();
+
+  final monthlyLimit = data['monthlyLimit'] as double?;
+  final categoryLimits =
+      data['categoryLimits'] as Map<String, double>;
+
+  if (monthlyLimit != null) {
+    _monthlyLimitController.text =
+        monthlyLimit.toStringAsFixed(2);
   }
 
-  Future<void> _loadSettings() async {
-    final prefs = await SharedPreferences.getInstance();
+  _categoryLimits = categoryLimits;
 
-    // Monthly limit
-    final monthlyLimit = prefs.getDouble('monthlyLimit');
-    if (monthlyLimit != null) {
-      _monthlyLimitController.text = monthlyLimit.toStringAsFixed(2);
-    }
+  setState(() {});
+}
+Future<void> _saveMonthlyLimit() async {
 
-    // Category limits
-    final raw = prefs.getString('categoryLimits');
-    if (raw != null && raw.isNotEmpty) {
-      final decoded = jsonDecode(raw) as Map<String, dynamic>;
-      _categoryLimits = decoded.map(
-            (key, value) => MapEntry(key, (value as num).toDouble()),
-      );
-    }
+  await settingsController.saveMonthlyLimit(
+    _monthlyLimitController.text,
+  );
 
-    setState(() {});
-  }
+  if (!mounted) return;
 
-  Future<void> _saveMonthlyLimit() async {
-    final prefs = await SharedPreferences.getInstance();
-    final val =
-        double.tryParse(_monthlyLimitController.text.trim()) ?? 0.0;
-    await prefs.setDouble('monthlyLimit', val);
+  ScaffoldMessenger.of(context).showSnackBar(
+    const SnackBar(
+      content: Text('Monthly limit saved'),
+    ),
+  );
+
+}
+Future<void> _addOrUpdateCategoryLimit() async {
+
+  if (_selectedCategory == null ||
+      _selectedCategory!.isEmpty ||
+      _categoryLimitController.text.trim().isEmpty) {
 
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Monthly limit saved')),
-    );
-  }
-
-  Future<void> _addOrUpdateCategoryLimit() async {
-    if (_selectedCategory == null ||
-        _selectedCategory!.isEmpty ||
-        _categoryLimitController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text('Please choose a category and enter a limit')),
-      );
-      return;
-    }
-
-    final limit =
-        double.tryParse(_categoryLimitController.text.trim()) ?? 0.0;
-
-    if (limit <= 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please enter a valid positive limit'),
+      const SnackBar(
+        content: Text(
+          'Please choose a category and enter a limit',
         ),
-      );
-      return;
-    }
-
-    final prefs = await SharedPreferences.getInstance();
-
-    _categoryLimits[_selectedCategory!] = limit;
-    final encoded = jsonEncode(_categoryLimits);
-    await prefs.setString('categoryLimits', encoded);
-
-    _categoryLimitController.clear();
-
-    setState(() {});
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Category limit saved')),
+      ),
     );
+    return;
   }
 
-  Future<void> _removeCategoryLimit(String key) async {
-    final prefs = await SharedPreferences.getInstance();
-    _categoryLimits.remove(key);
-    final encoded = jsonEncode(_categoryLimits);
-    await prefs.setString('categoryLimits', encoded);
-    setState(() {});
+  final limit = double.tryParse(
+        _categoryLimitController.text.trim(),
+      ) ??
+      0.0;
+
+  if (limit <= 0) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text(
+          'Please enter a valid positive limit',
+        ),
+      ),
+    );
+    return;
   }
+
+  _categoryLimits =
+      await settingsController.saveCategoryLimit(
+    category: _selectedCategory!,
+    amount: _categoryLimitController.text,
+    categoryLimits: _categoryLimits,
+  );
+
+  _categoryLimitController.clear();
+
+  setState(() {});
+
+  ScaffoldMessenger.of(context).showSnackBar(
+    const SnackBar(
+      content: Text('Category limit saved'),
+    ),
+  );
+}
+
+
+  Future<void> _removeCategoryLimit(String category) async {
+
+  _categoryLimits =
+      await settingsController.removeCategoryLimit(
+    category: category,
+    categoryLimits: _categoryLimits,
+  );
+
+  setState(() {});
+
+}
 
   @override
   void dispose() {
@@ -244,7 +259,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               Expanded(
                                 flex: 2,
                                 child: DropdownButtonFormField<String>(
-                                  value: _selectedCategory,
+                                  initialValue: _selectedCategory,
                                   decoration: const InputDecoration(
                                     labelText: 'Category',
                                     border: OutlineInputBorder(),
@@ -408,3 +423,5 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 }
+  
+

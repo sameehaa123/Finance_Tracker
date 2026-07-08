@@ -28,7 +28,7 @@ class _AddBillReminderScreenState extends State<AddBillReminderScreen> {
     'Entertainment',
     'Other'
   ];
-  String _selectedCategory = 'Food';
+  final String _selectedCategory = 'Food';
 
   Future<void> _pickDate() async {
     final now = DateTime.now();

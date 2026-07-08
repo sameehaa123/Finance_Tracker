@@ -2,12 +2,13 @@ import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../../core/theme/theme_service.dart';
 import '../controller/expense_controller.dart';
 import 'add_expense.dart';
-import '../../../services/theme_service.dart';
+import '../../../core/Services/gemini_service.dart';
 
 class ListExpensesScreen extends StatelessWidget {
-  const ListExpensesScreen({Key? key}) : super(key: key);
+  const ListExpensesScreen({super.key});
 
   
   @override

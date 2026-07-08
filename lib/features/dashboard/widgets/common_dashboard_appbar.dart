@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../services/theme_service.dart';
+import '../../../core/theme/theme_service.dart';
 import '../../settings/view/settings_screen.dart';
 import '../../../core/utils/logout_util.dart';
 

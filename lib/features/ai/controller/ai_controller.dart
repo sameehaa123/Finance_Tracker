@@ -1,4 +1,4 @@
-import '../../../services/gemini_service.dart';
+import '../../../core/Services/gemini_service.dart';
 
 class AIController{
   String buildPromptFromData(

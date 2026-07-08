@@ -11,8 +11,7 @@ class AddExpenseScreen extends StatefulWidget {
   final String? expenseId; // null = add, non-null = edit
   final Map<String, dynamic>? expenseData;
 
-  const AddExpenseScreen({Key? key, this.expenseId, this.expenseData})
-      : super(key: key);
+  const AddExpenseScreen({super.key, this.expenseId, this.expenseData});
 
   @override
   State<AddExpenseScreen> createState() => _AddExpenseScreenState();
@@ -55,7 +54,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
     if (pickedFile != null) {
       final appDir = await getApplicationDocumentsDirectory();
       final fileName =
-          DateTime.now().millisecondsSinceEpoch.toString() + '.jpg';
+          '${DateTime.now().millisecondsSinceEpoch}.jpg';
       final savedImage =
       await File(pickedFile.path).copy('${appDir.path}/$fileName');
       setState(() {
@@ -328,7 +327,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
         ],
       ),
       child: DropdownButtonFormField<String>(
-        value: _selectedCategory,
+        initialValue: _selectedCategory,
         decoration: const InputDecoration(border: InputBorder.none),
         items: _categories.map((category) {
           return DropdownMenuItem<String>(

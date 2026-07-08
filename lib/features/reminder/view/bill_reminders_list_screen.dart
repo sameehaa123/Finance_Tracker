@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import '../controller/reminder_controller.dart';
 
 class BillRemindersListScreen extends StatelessWidget {
   const BillRemindersListScreen({super.key});
@@ -9,6 +10,7 @@ class BillRemindersListScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final ReminderController reminderController = ReminderController();
 
     // If somehow user is not logged in
     if (user == null) {
@@ -51,11 +53,7 @@ class BillRemindersListScreen extends StatelessWidget {
           ),
         ),
         child: StreamBuilder<QuerySnapshot>(
-          // 🔹 Removed orderBy to avoid index requirement
-          stream: FirebaseFirestore.instance
-              .collection('billReminders')
-              .where('userId', isEqualTo: user.uid)
-              .snapshots(),
+          stream: reminderController.getReminders(user.uid),
           builder: (context, snapshot) {
             if (snapshot.hasError) {
               // helpful for debugging in console
@@ -151,18 +149,15 @@ class BillRemindersListScreen extends StatelessWidget {
                     isThreeLine: true,
                     trailing: IconButton(
                       icon: const Icon(Icons.delete, color: Colors.red),
-                      onPressed: () async {
-                        await FirebaseFirestore.instance
-                            .collection('billReminders')
-                            .doc(doc.id)
-                            .delete();
+                     onPressed: () async {
+                        await reminderController.deleteReminder(doc.id);
 
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text("Reminder deleted"),
-                            backgroundColor: Colors.red,
-                          ),
-                        );
+                    ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                         content: Text("Reminder deleted"),
+                        backgroundColor: Colors.red,
+                       ),
+                      );
                       },
                     ),
                   ),

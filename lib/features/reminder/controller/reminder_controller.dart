@@ -36,6 +36,22 @@ final DateTime dueDateTime = DateTime(
   });
 
 }
+Stream<QuerySnapshot> getReminders(String userId) {
+
+  return FirebaseFirestore.instance
+      .collection('billReminders')
+      .where('userId', isEqualTo: userId)
+      .snapshots();
+
+}
+Future<void> deleteReminder(String id) async {
+
+  await FirebaseFirestore.instance
+      .collection('billReminders')
+      .doc(id)
+      .delete();
+
+}
 }
 
 

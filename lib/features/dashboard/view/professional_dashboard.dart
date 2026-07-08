@@ -1,33 +1,14 @@
-// import 'package:flutter/material.dart';
-// import 'dashboard_screen.dart';
-//
-// class ProfessionalDashboard extends StatelessWidget {
-//   const ProfessionalDashboard({super.key});
-//
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       appBar: AppBar(
-//         title: const Text("Professional Dashboard"),
-//       ),
-//       body: const Dashboard(),
-//     );
-//   }
-// }
-import 'dart:convert';
-
 import 'package:ai_poweredfinancetracker/features/reminder/view/widgets/upcoming_bills_banner.dart';
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+
 import 'package:fl_chart/fl_chart.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../core/Services/show_popup_service.dart';
 import '../../expense/view/add_expense.dart';
 import '../../expense/view/expense_list.dart';
 import '../../ai/view/ai_suggestions_screen.dart';
 import '../widgets/common_dashboard_appbar.dart';
+import '../controller/dashboard_controller.dart';
 
 class ProfessionalDashboard extends StatefulWidget {
   const ProfessionalDashboard({super.key});
@@ -38,9 +19,7 @@ class ProfessionalDashboard extends StatefulWidget {
 }
 
 class _ProfessionalDashboardState extends State<ProfessionalDashboard> {
-  final user = FirebaseAuth.instance.currentUser!;
-  double total = 0;
-  Map<String, double> categoryTotals = {};
+  final DashboardController dashboardController = DashboardController();
 
   // Same palette as main dashboard
   final List<Color> sliceColors = const [
@@ -55,130 +34,22 @@ class _ProfessionalDashboardState extends State<ProfessionalDashboard> {
   @override
   void initState() {
     super.initState();
-    fetchExpenses();
+    dashboardController.fetchExpenses(context);
+    dashboardController.addListener(_refreshScreen);
     checkUpcomingBills(context);
+ }
 
+ void _refreshScreen() {
+  if (mounted) {
+    setState(() {});
   }
-  Future<void> fetchExpenses() async {
-    final snapshot = await FirebaseFirestore.instance
-        .collection('expenses')
-        .where('userId', isEqualTo: user.uid)
-        .get();
-
-    double totalAmount = 0;
-    Map<String, double> catTotals = {};
-
-    for (var doc in snapshot.docs) {
-      final data = doc.data();
-      double amount = 0;
-      try {
-        amount = (data['amount'] ?? 0).toDouble();
-      } catch (_) {
-        amount = double.tryParse(data['amount'].toString()) ?? 0;
-      }
-      final cat = data['category'] ?? 'Other';
-      totalAmount += amount;
-      catTotals[cat] = (catTotals[cat] ?? 0) + amount;
-    }
-
-    // 🔹 Load monthly & category limits
-    final prefs = await SharedPreferences.getInstance();
-    final monthlyLimit = prefs.getDouble('monthlyLimit');
-
-    // check monthly total
-    if (monthlyLimit != null && totalAmount > monthlyLimit && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("⚠ You have exceeded your monthly limit!"),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
-
-    // check per-category limits
-    final raw = prefs.getString('categoryLimits');
-    if (raw != null && raw.isNotEmpty && mounted) {
-      final decoded = jsonDecode(raw) as Map<String, dynamic>;
-      final limits = decoded.map(
-            (key, value) => MapEntry(key, (value as num).toDouble()),
-      );
-
-      for (final entry in catTotals.entries) {
-        final cat = entry.key;
-        final spent = entry.value;
-        final limit = limits[cat];
-
-        if (limit != null && spent > limit) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                "⚠ You exceeded the limit for $cat (AED ${spent.toStringAsFixed(2)} > AED ${limit.toStringAsFixed(2)})",
-              ),
-              backgroundColor: Colors.orange,
-            ),
-          );
-          break; // show one warning at a time
-        }
-      }
-    }
-
-    if (mounted) {
-      setState(() {
-        total = totalAmount;
-        categoryTotals = catTotals;
-      });
-    }
-  }
-
-  // Future<void> fetchExpenses() async {
-  //   final snapshot = await FirebaseFirestore.instance
-  //       .collection('expenses')
-  //       .where('userId', isEqualTo: user.uid)
-  //       .get();
-  //
-  //   double sum = 0;
-  //   final Map<String, double> map = {};
-  //
-  //   for (var doc in snapshot.docs) {
-  //     final data = doc.data();
-  //
-  //     double amt = 0;
-  //     try {
-  //       amt = (data['amount'] ?? 0).toDouble();
-  //     } catch (_) {
-  //       amt = double.tryParse(data['amount'].toString()) ?? 0;
-  //     }
-  //
-  //     final cat = data['category'] ?? 'Other';
-  //     sum += amt;
-  //     map[cat] = (map[cat] ?? 0) + amt;
-  //   }
-  //
-  //   final prefs = await SharedPreferences.getInstance();
-  //   final limit = prefs.getDouble('monthlyLimit');
-  //
-  //   if (limit != null && sum > limit && mounted) {
-  //     ScaffoldMessenger.of(context).showSnackBar(
-  //       const SnackBar(
-  //         content: Text("⚠ You have exceeded your monthly limit!"),
-  //         backgroundColor: Colors.red,
-  //       ),
-  //     );
-  //   }
-  //
-  //   if (mounted) {
-  //     setState(() {
-  //       total = sum;
-  //       categoryTotals = map;
-  //     });
-  //   }
-  // }
+}
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final accent = const Color(0xFF00897B);
-    final entries = categoryTotals.entries.toList();
+    final entries = dashboardController.categoryTotals.entries.toList();
 
     return Scaffold(
       appBar: commonDashboardAppBar(
@@ -226,13 +97,13 @@ class _ProfessionalDashboardState extends State<ProfessionalDashboard> {
                     _kpiCard(
                       context,
                       label: "Total Spent",
-                      value: "AED ${total.toStringAsFixed(2)}",
+                      value: "AED ${dashboardController.total.toStringAsFixed(2)}",
                       isDark: isDark,
                     ),
                     _kpiCard(
                       context,
                       label: "Categories",
-                      value: categoryTotals.length.toString(),
+                      value: dashboardController.categoryTotals.length.toString(),
                       isDark: isDark,
                     ),
                   ],
@@ -478,8 +349,8 @@ class _ProfessionalDashboardState extends State<ProfessionalDashboard> {
                           context,
                           MaterialPageRoute(
                             builder: (_) => AiSuggestionsScreen(
-                              total: total,
-                              categoryTotals: categoryTotals,
+                              total: dashboardController.total,
+                              categoryTotals: dashboardController.categoryTotals,
                             ),
                           ),
                         );
@@ -502,7 +373,7 @@ class _ProfessionalDashboardState extends State<ProfessionalDashboard> {
             MaterialPageRoute(
               builder: (_) => const AddExpenseScreen(),
             ),
-          ).then((_) => fetchExpenses());
+          ).then((_) => dashboardController.fetchExpenses(context));
         },
         child: const Icon(Icons.add),
       ),
@@ -549,5 +420,10 @@ class _ProfessionalDashboardState extends State<ProfessionalDashboard> {
       ),
     );
   }
+  @override
+void dispose() {
+  dashboardController.removeListener(_refreshScreen);
+  super.dispose();
+}
 }
 
