@@ -1,16 +1,12 @@
-import 'package:ai_poweredfinancetracker/features/dashboard/view/student_dashboard.dart';
-import 'package:ai_poweredfinancetracker/features/dashboard/view/professional_dashboard.dart';
-import 'package:ai_poweredfinancetracker/features/dashboard/view/senior_dashboard.dart';
+
 
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'core/Services/gemini_config.dart';
-import 'features/auth/view/login_screen.dart';
+
 import 'core/theme/theme_service.dart';
+import 'features/splashscreen/view/splash_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -27,47 +23,6 @@ void main() async {
 class SpendlyApp extends StatelessWidget {
   const SpendlyApp({super.key});
 
-  /// Decide which screen to show at startup:
-  /// - not logged in  -> LoginScreen
-  /// - logged in      -> Dashboard based on Firestore "role"
-  Future<Widget> _getStartScreen() async {
-    final prefs = await SharedPreferences.getInstance();
-    final savedLogin = prefs.getBool('isLoggedIn') ?? false;
-    final firebaseUser = FirebaseAuth.instance.currentUser;
-
-    // Not logged in at all
-    if (!savedLogin || firebaseUser == null) {
-      return const LoginScreen();
-    }
-
-    try {
-      // Fetch user data from Firestore
-      final doc = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(firebaseUser.uid)
-          .get();
-
-      if (!doc.exists) {
-        // Fallback: no user doc -> force login again
-        return const LoginScreen();
-      }
-
-      final data = doc.data() as Map<String, dynamic>;
-      final role = (data['role'] ?? 'Student') as String;
-
-      if (role == 'Professional') {
-        return const ProfessionalDashboard();
-      } else if (role == 'Senior Citizen') {
-        return const SeniorDashboard();
-      } else {
-        // default / Student
-        return const StudentDashboard();
-      }
-    } catch (e) {
-      // If anything fails, go to login
-      return const LoginScreen();
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -129,35 +84,7 @@ class SpendlyApp extends StatelessWidget {
           theme: lightTheme,
           darkTheme: darkTheme,
           themeMode: isDark ? ThemeMode.dark : ThemeMode.light,
-          home: FutureBuilder<Widget>(
-            future: _getStartScreen(),
-            builder: (context, snapshot) {
-              if (!snapshot.hasData) {
-                return const Scaffold(
-                  body: Center(child: CircularProgressIndicator()),
-                );
-              }
-
-              final startScreen = snapshot.data!;
-
-              return Container(
-                decoration: BoxDecoration(
-                  gradient: isDark
-                      ? const LinearGradient(
-                    colors: [Color(0xFF081427), Color(0xFF17233A)],
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                  )
-                      : const LinearGradient(
-                    colors: [Color(0xFFA8E6CF), Colors.white],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                ),
-                child: startScreen,
-              );
-            },
-          ),
+          home: const SplashScreen(),
         );
       },
     );

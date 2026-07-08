@@ -1,9 +1,8 @@
 
 import 'package:flutter/material.dart';
+import '../../../core/Services/sharedpref_service.dart';
+import '../../bottomnav/view/bottom_nav.dart';
 import '../controller/auth_controller.dart';
-import '../../dashboard/view/professional_dashboard.dart';
-import '../../dashboard/view/senior_dashboard.dart';
-import '../../dashboard/view/student_dashboard.dart';
 import 'register_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -31,22 +30,14 @@ class _LoginScreenState extends State<LoginScreen> {
       _emailController.text.trim(),
       _passwordController.text.trim(),
     );
-     
+     await SharedprefService.saveRole(role);
     
-      // 4. Navigate based on role
-      Widget nextScreen;
-      if (role == 'Student') {
-        nextScreen = const StudentDashboard();
-      } else if (role == 'Professional') {
-        nextScreen = const ProfessionalDashboard();
-      } else {
-        nextScreen = const SeniorDashboard();
-      }
+  
 
       if (mounted) {
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => nextScreen),
+          MaterialPageRoute(builder: (context) => const BottomNavScreen()),
         );
       }
     } catch (e) {

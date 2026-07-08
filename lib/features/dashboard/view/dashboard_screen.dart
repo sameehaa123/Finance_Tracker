@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import '../../../core/Services/sharedpref_service.dart';
 import '../../../core/theme/theme_service.dart';
 import '../../auth/view/login_screen.dart';
 import '../../expense/view/add_expense.dart';
@@ -21,6 +22,7 @@ Future<void> _logout(BuildContext context) async {
   final prefs = await SharedPreferences.getInstance();
   await prefs.setBool('isLoggedIn', false);
   await prefs.clear();
+  await SharedprefService.clearRole();
   await FirebaseAuth.instance.signOut();
 
   Navigator.of(context).pushAndRemoveUntil(
