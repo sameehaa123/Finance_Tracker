@@ -36,16 +36,16 @@ bool isloading = true;
     var role = await SharedprefService.getRole();
     if (role == 'Student') {
       pages.add(const StudentDashboard());
-      pages.add(const PlansScreen());
+      pages.add( PlansScreen());
     } else if (role == 'Professional') {
       pages.add(const ProfessionalDashboard());
-      pages.add(const PlansScreen());
+      pages.add( PlansScreen());
     } else if (role == 'Senior Citizen') {
       pages.add(const SeniorDashboard());
-      pages.add(const PlansScreen());
+      pages.add( PlansScreen());
     }else {
       pages.add(const StudentDashboard());
-      pages.add(const PlansScreen());
+      pages.add( PlansScreen());
     }
     isloading = false;
     setState(() {});

@@ -29,9 +29,9 @@ class _SplashScreenState extends State<SplashScreen> {
     });
 
 
- 
+  initData();
      super.initState();
- initData();
+
   }
 
   Future<void> initData() async {
@@ -87,34 +87,46 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.blue,
-      body: Center(
-        child: AnimatedScale(
-          scale: _animate ? 1 : 0.4,
-          duration: const Duration(milliseconds: 900),
-          curve: Curves.easeOutBack,
-          child: AnimatedOpacity(
-            opacity: _animate ? 1 : 0,
-            duration: const Duration(milliseconds: 900),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Image.asset(
-                  'assets/logo.png',
-                  width: 120,
+      
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            //starting point of the gradient top
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+      Color(0xFF2E7D32), // Dark Green
+      Color(0xFF81C784), // Light Green
+      Color(0xFFFFFFFF), // White
+    ],
+    ),
+    ),
+    
+        child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            AnimatedScale(
+              scale: _animate ? 1 : 0.4,
+              duration: const Duration(milliseconds: 900),
+              curve: Curves.easeOutBack,
+              child: AnimatedOpacity(
+                opacity: _animate ? 1 : 0,
+                duration: const Duration(milliseconds: 900),
+
+          
+                   child: Image.asset(
+                      'assets/images/Spendly.png',
+                      width: 220,
+                      height: 220,
+                    ),
                 ),
-                const SizedBox(height: 20),
-                const Text(
-                  "Spendly",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 30,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
+              )
+          ],
             ),
-          ),
         ),
       ),
     );
