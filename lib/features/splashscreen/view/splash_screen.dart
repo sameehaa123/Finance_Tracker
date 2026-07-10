@@ -3,7 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
+import '../../../core/Services/sharedpref_service.dart';
 import '../../bottomnav/view/bottom_nav.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -37,6 +37,7 @@ class _SplashScreenState extends State<SplashScreen> {
   Future<void> initData() async {
     
     final startScreen = await _getStartScreen();
+  
 
     // Keep splash visible
     await Future.delayed(const Duration(seconds: 3));
@@ -54,18 +55,20 @@ class _SplashScreenState extends State<SplashScreen> {
   /// Decide which screen to show
   Future<Widget> _getStartScreen() async {
     final prefs = await SharedPreferences.getInstance();
-    final savedLogin = prefs.getBool('isLoggedIn') ?? false;
+    // final savedLogin = prefs.getBool('isLoggedIn') ?? false;
     final firebaseUser = FirebaseAuth.instance.currentUser;
 
     // Not logged in
-    if (!savedLogin || firebaseUser == null) {
-      return const LoginScreen();
-    }
+    // if (!savedLogin || firebaseUser == null) {
+    //   return const LoginScreen();
+    // }
+
+  
 
     try {
       final doc = await FirebaseFirestore.instance
           .collection('users')
-          .doc(firebaseUser.uid)
+          .doc(firebaseUser?.uid)
           .get();
 
       if (!doc.exists) {
@@ -93,15 +96,13 @@ class _SplashScreenState extends State<SplashScreen> {
         height: double.infinity,
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            //starting point of the gradient top
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-      Color(0xFF2E7D32), // Dark Green
-      Color(0xFF81C784), // Light Green
-      Color(0xFFFFFFFF), // White
-    ],
-    ),
+  colors: [
+    Color(0xFFA8E6CF),
+    Colors.white,
+  ],
+  begin: Alignment.topLeft,
+  end: Alignment.bottomRight,
+),
     ),
     
         child: Center(

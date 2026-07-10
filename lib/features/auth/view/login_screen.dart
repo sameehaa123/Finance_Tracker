@@ -169,7 +169,9 @@ if(currentUser != null) {
         .collection('users')
         .doc(currentUser.uid)
         .get();
-        if (user.exists) {
+        final role = user.data()?['role'] ??"";
+        await SharedprefService.saveRole(role);
+               if (user.exists) {
           print("User already exists in Firestore");
           final role = user.data()?['role'] ?? 'Student';
           if (role != null) {
@@ -186,6 +188,8 @@ if(currentUser != null) {
             'photo': currentUser.photoURL,
           }, SetOptions(merge: true));
           print("New user added to Firestore");
+          await SharedprefService.saveRole("Student");
+          
         }
 
   

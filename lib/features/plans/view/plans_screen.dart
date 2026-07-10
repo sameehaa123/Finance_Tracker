@@ -17,10 +17,9 @@ class PlansScreen extends StatelessWidget {
         width: double.infinity,
         decoration: const BoxDecoration(
           gradient: LinearGradient(
-            colors: [
-              Color(0xFF0B5D3B),
-              Color(0xFF1B8A5A),
-              Color(0xFF5BC98C),
+           colors: [
+        Color.fromARGB(255, 144, 233, 202),
+        Color .fromARGB(255, 144, 233, 202),
             ],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
@@ -64,7 +63,7 @@ class PlansScreen extends StatelessWidget {
                     "Choose Your Plan",
                     style: TextStyle(
                       fontSize: 34,
-                      color: Colors.white,
+                      color: Color(0xFF00897B),
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -78,7 +77,7 @@ class PlansScreen extends StatelessWidget {
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         color: Colors.white70,
-                        fontSize: 15,
+                        fontSize: 18,
                       ),
                     ),
                   ),

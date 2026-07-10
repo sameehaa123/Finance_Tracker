@@ -65,7 +65,7 @@ class PlanCard extends StatelessWidget {
           Text(
             plan.description,
             style: const TextStyle(
-              color: Colors.white70,
+              color: Color(0xFF00897B),
               fontSize: 16,
             ),
           ),
@@ -127,7 +127,7 @@ class PlanCard extends StatelessWidget {
                     child: Text(
                       feature,
                       style: const TextStyle(
-                        color: Colors.white,
+                        color: Colors.black,
                         fontSize: 15,
                       ),
                     ),
