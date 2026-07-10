@@ -12,7 +12,12 @@
           "package_name": "com.sameeha.ai_poweredfinancetracker"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "83453219439-i9p56iro8t54hse8u0fmejff6q977r47.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyBHC1TOsvZN8r7RYpKLGNTQwHHA7cKNKYk"
@@ -20,7 +25,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "83453219439-i9p56iro8t54hse8u0fmejff6q977r47.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     },
@@ -31,7 +41,20 @@
           "package_name": "com.sameeha.aipoweredfinancetracker"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "83453219439-eobm3r1oil7h38vfud0u55k8mfepc3r4.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.sameeha.aipoweredfinancetracker",
+            "certificate_hash": "f95a9e17d936bfb1d3ebe19cee2009cd7ceb41b4"
+          }
+        },
+        {
+          "client_id": "83453219439-i9p56iro8t54hse8u0fmejff6q977r47.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyBHC1TOsvZN8r7RYpKLGNTQwHHA7cKNKYk"
@@ -39,7 +62,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "83453219439-i9p56iro8t54hse8u0fmejff6q977r47.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }

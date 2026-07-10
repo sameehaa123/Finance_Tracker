@@ -1,4 +1,8 @@
 
+import 'package:ai_poweredfinancetracker/core/Services/google_auth_service.dart';
+import 'package:ai_poweredfinancetracker/features/dashboard/view/student_dashboard.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import '../../../core/Services/sharedpref_service.dart';
 import '../../bottomnav/view/bottom_nav.dart';
@@ -121,6 +125,108 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                     ),
+                    const SizedBox(height: 20),
+
+Row(
+  children: [
+    const Expanded(
+      child: Divider(
+        thickness: 1,
+        color: Colors.grey,
+      ),
+    ),
+    Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 10),
+      child: Text(
+        "OR",
+        style: TextStyle(
+          color: Colors.grey,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    ),
+    const Expanded(
+      child: Divider(
+        thickness: 1,
+        color: Colors.grey,
+      ),
+    ),
+  ],
+),
+
+const SizedBox(height: 20),
+
+ElevatedButton.icon(
+  onPressed: () async {
+    final user = await GoogleAuthService().signInWithGoogle();
+    final currentUser = FirebaseAuth.instance.currentUser;
+
+
+  
+if(currentUser != null) {
+  if(currentUser.email != null) {
+   final user = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(currentUser.uid)
+        .get();
+        if (user.exists) {
+          print("User already exists in Firestore");
+          final role = user.data()?['role'] ?? 'Student';
+          if (role != null) {
+            await SharedprefService.saveRole(role);
+          }
+        } else {
+          await FirebaseFirestore.instance
+              .collection('users')
+              .doc(currentUser.uid)
+              .set({
+            'email': currentUser.email,
+            'name': currentUser.displayName,
+            'role': "Student",
+            'photo': currentUser.photoURL,
+          }, SetOptions(merge: true));
+          print("New user added to Firestore");
+        }
+
+  
+  }else{
+     
+    print("Current user email is null");
+  }
+ 
+}
+
+
+    if (user != null) {
+      print( "Google Sign-In successful for user: }");
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (_) => const BottomNavScreen(),
+        ),
+      );
+    }
+  },
+  icon: Image.asset(
+    'assets/images/google_logo.png',
+    height: 22,
+    width: 22,
+  ),
+  label: const Text("Google Sign-In For Students"),
+  style: ElevatedButton.styleFrom(
+    backgroundColor: Colors.white,
+    foregroundColor: Colors.black87,
+    minimumSize: const Size(double.infinity, 55),
+    side: const BorderSide(color: Colors.grey),
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(12),
+    ),
+  ),
+),
+const SizedBox(height: 20),
+
+
+
                     const SizedBox(height: 8),
                     TextButton(
                       onPressed: () => Navigator.push(
@@ -139,4 +245,5 @@ class _LoginScreenState extends State<LoginScreen> {
       ),
     );
   }
+  
 }

@@ -8,6 +8,7 @@ class PlanModel {
   final String buttonText;
   final bool isPopular;
   final String color;
+  final int order;
 
   PlanModel({
     required this.id,
@@ -19,6 +20,7 @@ class PlanModel {
     required this.buttonText,
     required this.isPopular,
     required this.color,
+    required this.order,
   });
 
   factory PlanModel.fromMap(
@@ -29,12 +31,13 @@ class PlanModel {
       id: id,
       name: data['name'] ?? '',
       description: data['description'] ?? '',
-      cutPrice: (data['cut_price'] ?? 0) as int,
-      finalPrice: (data['final_price'] ?? 0) as int,
+      cutPrice: (data['cutPrice'] ?? 0) as int,
+      finalPrice: (data['finalPrice'] ?? 0) as int,
       features: List<String>.from(data['features'] ?? []),
       buttonText: data['buttonText'] ?? 'Get Started',
       isPopular: data['isPopular'] ?? false,
       color: data['color'] ?? '#4CAF50',
+      order: (data['order'] ?? 0) as int,
     );
   }
 }

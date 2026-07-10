@@ -1,4 +1,5 @@
 
+import 'package:ai_poweredfinancetracker/core/Services/google_auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -24,6 +25,7 @@ Future<void> _logout(BuildContext context) async {
   await prefs.clear();
   await SharedprefService.clearRole();
   await FirebaseAuth.instance.signOut();
+  await GoogleAuthService().signOut();
 
   Navigator.of(context).pushAndRemoveUntil(
     MaterialPageRoute(builder: (_) => const LoginScreen()),

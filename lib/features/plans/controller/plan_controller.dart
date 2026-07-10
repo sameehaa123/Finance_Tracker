@@ -7,7 +7,7 @@ class PlanController {
 
   Stream<List<PlanModel>> getPlans() {
     return _firestore
-        .collection('packages')
+        .collection('packages').orderBy('order',descending: false)
         .snapshots()
         .map((snapshot) {
       return snapshot.docs.map((doc) {

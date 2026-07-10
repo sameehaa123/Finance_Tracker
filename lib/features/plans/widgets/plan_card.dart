@@ -44,7 +44,7 @@ class PlanCard extends StatelessWidget {
                   "POPULAR",
                   style: TextStyle(
                     color: Colors.white,
-                    fontSize: 10,
+                    fontSize: 15,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -66,6 +66,7 @@ class PlanCard extends StatelessWidget {
             plan.description,
             style: const TextStyle(
               color: Colors.white70,
+              fontSize: 16,
             ),
           ),
 
@@ -76,7 +77,7 @@ class PlanCard extends StatelessWidget {
               Text(
                 "₹${plan.cutPrice}",
                 style: const TextStyle(
-                  color: Colors.grey,
+                  color: Colors.black,
                   decoration: TextDecoration.lineThrough,
                 ),
               ),
@@ -119,7 +120,7 @@ class PlanCard extends StatelessWidget {
                   Icon(
                     Icons.check_circle,
                     color: planColor,
-                    size: 20,
+                    size: 23,
                   ),
                   const SizedBox(width: 10),
                   Expanded(
@@ -127,6 +128,7 @@ class PlanCard extends StatelessWidget {
                       feature,
                       style: const TextStyle(
                         color: Colors.white,
+                        fontSize: 15,
                       ),
                     ),
                   ),

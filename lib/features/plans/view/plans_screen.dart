@@ -27,8 +27,8 @@ class PlansScreen extends StatelessWidget {
           ),
         ),
         child: SafeArea(
-          child: StreamBuilder(
-            stream: FirebaseFirestore.instance.collection('packages').snapshots(),
+          child: StreamBuilder<List<PlanModel>>(
+            stream: controller.getPlans(),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const Center(
@@ -45,7 +45,7 @@ class PlansScreen extends StatelessWidget {
                 );
               }
 
-              if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+              if (!snapshot.hasData || snapshot.data!.isEmpty) {
                 return const Center(
                   child: Text(
                     "No plans available",
@@ -54,7 +54,7 @@ class PlansScreen extends StatelessWidget {
                 );
               }
 
-              final plans = snapshot.data!.docs.map((doc) => PlanModel.fromMap(doc.id, doc.data())).toList();
+              final plans = snapshot.data!.map((plan) => plan).toList();
 
               return Column(
                 children: [
