@@ -1,5 +1,6 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-
+import '../../../core/Services/payment_service.dart';
 import '../model/plan_model.dart';
 
 class PlanCard extends StatelessWidget {
@@ -105,7 +106,14 @@ class PlanCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(30),
                 ),
               ),
-              onPressed: () {},
+              onPressed: () async {
+                 await PaymentService.openCheckout(
+               amount: plan.finalPrice * 100,
+              planName: plan.name,
+              userEmail: FirebaseAuth.instance.currentUser?.email ?? "",
+              userContact: "",
+               );
+              },
               child: Text(plan.buttonText),
             ),
           ),

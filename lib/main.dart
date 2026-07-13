@@ -1,3 +1,4 @@
+import 'package:ai_poweredfinancetracker/core/Services/navigation_service.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 
@@ -83,6 +84,8 @@ class SpendlyApp extends StatelessWidget {
           darkTheme: darkTheme,
           themeMode: isDark ? ThemeMode.dark : ThemeMode.light,
           home: const SplashScreen(),
+          navigatorKey: NavigationService.navigatorKey,
+
         );
       },
     );

@@ -1,3 +1,4 @@
+import 'package:ai_poweredfinancetracker/core/Services/payment_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
@@ -5,10 +6,22 @@ import '../controller/plan_controller.dart';
 import '../model/plan_model.dart';
 import '../widgets/plan_card.dart';
 
-class PlansScreen extends StatelessWidget {
-   PlansScreen({super.key});
+class PlansScreen extends StatefulWidget {
+   const PlansScreen({super.key});
 
+  @override
+  State<PlansScreen> createState() => _PlansScreenState();
+}
+
+class _PlansScreenState extends State<PlansScreen> {
   final PlanController controller = PlanController();
+
+
+ @override
+  void initState() {
+    PaymentService.init();
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {

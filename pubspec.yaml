@@ -48,11 +48,12 @@ dependencies:
   shared_preferences: any
   http: ^1.2.0
   google_sign_in: ^7.2.0
+  razorpay_flutter: ^1.4.0
+  lottie: ^3.3.1
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
@@ -75,6 +76,7 @@ flutter:
   assets:
       - assets/images/
       - assets/config.json
+      - assets/lottie/
   # To add assets to your application, add an assets section, like this:
   # assets:
   #   - images/a_dot_burr.jpeg
