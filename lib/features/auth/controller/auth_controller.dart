@@ -26,6 +26,15 @@ Future<String> login( String email, String password) async {
 
       final data = doc.data() as Map<String, dynamic>;
       final role = (data['role'] ?? 'Student') as String;
+      final status = data ['status'] ?? 1;
+
+      if (status == 0) {
+        await FirebaseAuth.instance.signOut();
+
+        throw Exception(
+          "Your account has been deactivated."
+        );
+      }
 
       // 3. Save login state
       final prefs = await SharedPreferences.getInstance();
@@ -51,6 +60,7 @@ Future<String> login( String email, String password) async {
         'email': cred.user!.email,
         'role': role,
         'createdAt': FieldValue.serverTimestamp(),
+        "status": 1,
       });
 }
 

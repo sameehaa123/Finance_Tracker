@@ -1,8 +1,8 @@
+import 'package:ai_poweredfinancetracker/features/admin/view/admin_dashboard.dart';
 import 'package:ai_poweredfinancetracker/features/auth/view/login_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import '../../../core/Services/sharedpref_service.dart';
 import '../../bottomnav/view/bottom_nav.dart';
 
@@ -54,9 +54,10 @@ class _SplashScreenState extends State<SplashScreen> {
 
   /// Decide which screen to show
   Future<Widget> _getStartScreen() async {
-    final prefs = await SharedPreferences.getInstance();
-    // final savedLogin = prefs.getBool('isLoggedIn') ?? false;
+  
+    await FirebaseAuth.instance.authStateChanges().first;
     final firebaseUser = FirebaseAuth.instance.currentUser;
+
 
     // Not logged in
     // if (!savedLogin || firebaseUser == null) {
@@ -77,14 +78,22 @@ class _SplashScreenState extends State<SplashScreen> {
 
       final data = doc.data() as Map<String, dynamic>;
       final role = (data['role'] ?? 'Student') as String;
+    
+
+    await SharedprefService.saveRole(role);
 
       // You can use the role later if needed
       debugPrint("User role: $role");
 
+    if (role == "Admin") {
+      return const AdminDashboard();
+    } else {
       return const BottomNavScreen();
-    } catch (e) {
-      return const LoginScreen();
     }
+
+  } catch (e) {
+    return const LoginScreen();  
+  }
   }
 
   @override

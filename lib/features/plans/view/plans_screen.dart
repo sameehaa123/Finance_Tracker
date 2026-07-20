@@ -1,5 +1,4 @@
 import 'package:ai_poweredfinancetracker/core/Services/payment_service.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 import '../controller/plan_controller.dart';
