@@ -15,6 +15,7 @@ class SplashScreen extends StatefulWidget {
 
 class _SplashScreenState extends State<SplashScreen> {
   bool _animate = false;
+  bool _isBlocked = false;
 
   @override
   void initState() {
@@ -35,28 +36,79 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> initData() async {
-    
-    final startScreen = await _getStartScreen();
-  
 
-    // Keep splash visible
-    await Future.delayed(const Duration(seconds: 3));
+  final startScreen = await _getStartScreen();
 
-    if (!mounted) return;
+  await Future.delayed(
+    const Duration(seconds: 3),
+  );
 
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(
-        builder: (_) => startScreen,
-      ),
+  if (!mounted) return;
+
+  if (_isBlocked) {
+
+    await showDialog(
+
+      context: context,
+
+      barrierDismissible: false,
+
+      builder: (_) {
+
+        return AlertDialog(
+
+          title: const Text(
+            "Account Disabled",
+          ),
+
+          content: const Text(
+
+            "Your account has been disabled by the administrator.\nPlease contact support.",
+
+          ),
+
+          actions: [
+
+            ElevatedButton(
+
+              onPressed: () {
+
+                Navigator.pop(context);
+
+              },
+
+              child: const Text("OK"),
+            ),
+          ],
+        );
+      },
     );
   }
+
+  if (!mounted) return;
+
+  Navigator.pushReplacement(
+
+    context,
+
+    MaterialPageRoute(
+
+      builder: (_) => startScreen,
+
+    ),
+
+  );
+
+}
 
   /// Decide which screen to show
   Future<Widget> _getStartScreen() async {
   
     await FirebaseAuth.instance.authStateChanges().first;
     final firebaseUser = FirebaseAuth.instance.currentUser;
+    if (firebaseUser == null) {
+      return const LoginScreen();
+    }
 
 
     // Not logged in
@@ -77,6 +129,16 @@ class _SplashScreenState extends State<SplashScreen> {
       }
 
       final data = doc.data() as Map<String, dynamic>;
+      final status = data["status"] ?? 1;
+    
+      if (status == 0) {
+  _isBlocked = true;
+  await FirebaseAuth.instance.signOut();
+  await SharedprefService.clearRole();
+  return const LoginScreen();
+}
+
+
       final role = (data['role'] ?? 'Student') as String;
     
 

@@ -1,3 +1,6 @@
+import 'package:ai_poweredfinancetracker/core/Services/account_status_service.dart';
+import 'package:ai_poweredfinancetracker/features/auth/view/login_screen.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../../../core/Services/sharedpref_service.dart';
@@ -27,6 +30,8 @@ class _BottomNavScreenState extends State<BottomNavScreen> {
     });
   }
 bool isloading = true;
+bool _dialogShowing = false;
+
   initState() {
     super.initState();
     initdata();
@@ -34,6 +39,70 @@ bool isloading = true;
   initdata() async {
    
     var role = await SharedprefService.getRole();
+
+final user = FirebaseAuth.instance.currentUser;
+
+if (user !=null) {
+  AccountStatusService.startListening(
+    userId: user.uid,
+    onBlocked: () async {
+    
+  if (_dialogShowing) return;
+
+  _dialogShowing = true;
+
+  if (!mounted) return;
+
+  await showDialog(
+
+    context: context,
+
+    barrierDismissible: false,
+
+    builder: (_) {
+      return AlertDialog(
+        title: const Text(
+          "Account Disabled",
+        ),
+
+        content: const Text("Your account has been disabled by the administrator.\n\nPlease contact support.",),
+
+        actions: [
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+            },
+
+            child: const Text("OK"),
+          ),
+        ],
+      );
+    },
+  );
+
+  await FirebaseAuth.instance.signOut();
+  await SharedprefService.clearRole();
+  AccountStatusService.stopListening();
+
+  if (!mounted) return;
+  Navigator.pushAndRemoveUntil(
+
+    context,
+
+    MaterialPageRoute(
+
+      builder: (_) => const LoginScreen(),
+
+    ),
+
+    (route) => false,
+
+  );
+
+    },
+    );
+}
+
     if (role == 'Student') {
       pages.add(const StudentDashboard());
       pages.add( PlansScreen());
@@ -73,5 +142,10 @@ bool isloading = true;
         ],
       ),
     );
+  }
+ @override
+  void dispose() {
+    AccountStatusService.stopListening();
+    super.dispose();
   }
 }

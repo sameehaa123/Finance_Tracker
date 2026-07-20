@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 class PaymentCard extends StatelessWidget {
   final String email;
@@ -8,7 +9,11 @@ class PaymentCard extends StatelessWidget {
   final String status;
   final String paymentId;
   final String orderId;
+  final String errorMessage;
+
   final Timestamp? createdAt;
+  final Timestamp? completedAt;
+  
 
   const PaymentCard({
     super.key,
@@ -18,12 +23,23 @@ class PaymentCard extends StatelessWidget {
     required this.status,
     required this.paymentId,
     required this.orderId,
+    required this.errorMessage,
     required this.createdAt,
+    required this.completedAt,
   });
 
   @override
   Widget build(BuildContext context) {
-    final date = createdAt?.toDate();
+    final createdDate = createdAt?.toDate();
+    final completedDate = completedAt?.toDate();
+
+    final formattedCreated = createdDate == null
+    ? "-"
+    : DateFormat("dd MMM yyyy • hh:mm a",).format(createdDate);
+
+    final formattedCompleted = completedDate == null
+    ? "-"
+    : DateFormat("dd MMM yyyy • hh:mm a",).format(completedDate);
 
     return Card(
       margin: const EdgeInsets.only(bottom: 15),
@@ -40,10 +56,8 @@ class PaymentCard extends StatelessWidget {
 
           children: [
 
-            //-----------------------------------
+            
             // EMAIL
-            //-----------------------------------
-
             Row(
               children: [
 
@@ -69,10 +83,8 @@ class PaymentCard extends StatelessWidget {
 
             const SizedBox(height: 15),
 
-            //-----------------------------------
+            
             // PLAN
-            //-----------------------------------
-
             Row(
               children: [
 
@@ -90,18 +102,10 @@ class PaymentCard extends StatelessWidget {
 
             const SizedBox(height: 10),
 
-            //-----------------------------------
+          
             // AMOUNT
-            //-----------------------------------
-
             Row(
               children: [
-
-                const Icon(
-                  Icons.currency_rupee,
-                  color: Colors.green,
-                ),
-
                 const SizedBox(width: 10),
 
                 Text(
@@ -117,10 +121,8 @@ class PaymentCard extends StatelessWidget {
 
             const SizedBox(height: 10),
 
-            //-----------------------------------
+          
             // STATUS
-            //-----------------------------------
-
             Container(
 
               padding: const EdgeInsets.symmetric(
@@ -159,36 +161,108 @@ class PaymentCard extends StatelessWidget {
 
             const SizedBox(height: 12),
 
-            //-----------------------------------
-            // PAYMENT ID
-            //-----------------------------------
+         
+          // SUCCESS PAYMENT
+        if (status == "Success") ...[
+          const Text(
+    "Payment ID",
+    style: TextStyle(
+      fontWeight: FontWeight.bold,
+    ),
+  ),
 
-            Text(
-              "Payment ID : ${paymentId.isEmpty ? "-" : paymentId}",
-            ),
+  Text(
+    paymentId.isEmpty ? "-" : paymentId,
+  ),
 
-            const SizedBox(height: 6),
 
-            // ORDER ID
-            Text(
-              "Order ID : ${orderId.isEmpty ? "-" : orderId}",
-            ),
+  const SizedBox(height: 10),
+  Row(
+    children: [
+      const Icon(
+        Icons.check_circle,
+        color: Colors.green,
+        size: 18,
+      ),
 
-            const SizedBox(height: 12),
+      const SizedBox(width: 8),
+      Expanded(
+        child: Text(
+          "Completed : $formattedCompleted",
+        ),
+      ),
+    ],
+  ),
+]
 
-            
-            // DATE
-            Text(
 
-              date == null
-                  ? "-"
-                  : date.toString(),
+// FAILED PAYMENT
+else ...[
 
-              style: const TextStyle(
-                color: Colors.grey,
-              ),
+  const Text(
 
-            ),
+    "Error",
+
+    style: TextStyle(
+
+      fontWeight: FontWeight.bold,
+
+      color: Colors.red,
+
+    ),
+
+  ),
+
+  Text(
+
+    errorMessage.isEmpty ||
+            errorMessage == "undefined"
+        ? "Unknown Error"
+
+        : errorMessage,
+
+    style: const TextStyle(
+
+      color: Colors.red,
+
+    ),
+
+  ),
+
+  const SizedBox(height: 10),
+
+  Row(
+
+    children: [
+
+      const Icon(
+
+        Icons.schedule,
+
+        size: 18,
+
+        color: Colors.grey,
+
+      ),
+
+      const SizedBox(width: 8),
+
+      Expanded(
+
+        child: Text(
+
+          "Created : $formattedCreated",
+
+        ),
+
+      ),
+
+    ],
+
+  ),
+
+],
+          
 
           ],
         ),
