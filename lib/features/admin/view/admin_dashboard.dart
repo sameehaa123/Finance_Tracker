@@ -1,5 +1,6 @@
 import 'package:ai_poweredfinancetracker/core/Services/sharedpref_service.dart';
 import 'package:ai_poweredfinancetracker/features/admin/controller/admin_controller.dart';
+import 'package:ai_poweredfinancetracker/features/admin/view/manage_packages_screen.dart';
 import 'package:ai_poweredfinancetracker/features/admin/view/manage_users_screen.dart';
 import 'package:ai_poweredfinancetracker/features/admin/view/payments_screen.dart';
 import 'package:ai_poweredfinancetracker/features/admin/widgets/dashboard_card.dart';
@@ -297,7 +298,11 @@ SizedBox(
     ),
 
     onPressed: () {
-
+       Navigator.push(context,
+      MaterialPageRoute(builder: (_) => 
+      const ManagePackagesScreen(),
+      ),
+      );
     },
   ),
 ),

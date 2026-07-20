@@ -133,5 +133,82 @@ Future<List<Map<String, dynamic>>> getAllPayments() async {
   }).toList();
 }
 
+Future<List<Map<String, dynamic>>> getAllPackages() async {
+  final snapshot = await FirebaseFirestore.instance
+  .collection("packages")
+  .orderBy("order")
+  .get();
+
+  return snapshot.docs.map((doc) {
+    return {
+      "id":doc.id,
+      ...doc.data(),
+    };
+  }).toList();
+}
+
+Future<void> addPackage({
+  required String name,
+  required String description,
+  required String duration,
+  required int cutPrice,
+  required int finalPrice,
+  required String buttonText,
+  required bool isPopular,
+  required int order,
+  required List<String> features,
+
+}) async {
+  await FirebaseFirestore.instance
+  .collection("packages")
+  .add({
+    "name": name,
+    "description": description,
+    "duration": duration,
+    "cutPrice": cutPrice,
+    "finalPrice": finalPrice,
+    "buttonText": buttonText,
+    "color":"0xFF00897B",
+    "isPopular": isPopular,
+    "order": order, 
+    "features": features,
+  });
+}
+
+Future<void> updatePackage({
+  required String packageId,
+  required String name,
+  required String description,
+  required String duration,
+  required int cutPrice,
+  required int finalPrice,
+  required String buttonText,
+  required bool isPopular,
+  required int order,
+  required List<String>features,
+
+}) async {
+  await FirebaseFirestore.instance
+  .collection("packages")
+  .doc(packageId)
+  .update({
+    "name": name,
+    "description": description,
+
+    "duration": duration,
+
+    "cutPrice": cutPrice,
+
+    "finalPrice": finalPrice,
+
+    "buttonText": buttonText,
+
+    "isPopular": isPopular,
+
+    "order": order,
+
+    "features": features,
+    });
+}
 
 }
