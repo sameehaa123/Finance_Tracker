@@ -1,3 +1,5 @@
+import 'dart:ffi';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class AdminService {
@@ -194,21 +196,25 @@ Future<void> updatePackage({
   .update({
     "name": name,
     "description": description,
-
     "duration": duration,
-
     "cutPrice": cutPrice,
-
     "finalPrice": finalPrice,
-
     "buttonText": buttonText,
-
     "isPopular": isPopular,
-
     "order": order,
-
     "features": features,
     });
 }
+
+Future<void> deletePackage({
+  required String packageId,
+}) async {
+   await FirebaseFirestore.instance
+   .collection("packages")
+   .doc(packageId)
+   .delete();
+  
+}
+
 
 }
