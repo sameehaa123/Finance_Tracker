@@ -24,6 +24,13 @@ android {
     kotlinOptions {
         jvmTarget = "11"
     }
+
+    buildTypes {
+        release {
+            // TODO: Replace with a real release keystore before publishing.
+            signingConfig = signingConfigs.getByName("debug")
+        }
+    }
 }
 
 flutter {
